@@ -934,6 +934,50 @@
                     </form>
                 </div>
             </div>
+
+            <!-- EMBED TRACKING WIDGET -->
+            <div class="card" style="margin-top:20px;">
+                <div class="card-header"><h3>🔗 Tracking Widget — Embed on Your Website</h3></div>
+                <div class="card-body">
+                    <p style="font-size:14px;color:#6b7280;margin-bottom:20px;line-height:1.6;">
+                        Let your customers track shipments directly from your own website. Copy the code below and paste it anywhere in your website's HTML.
+                    </p>
+
+                    <!-- Preview -->
+                    <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:20px;">
+                        <div style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Preview</div>
+                        <div style="background:white;border-radius:8px;border:1px solid #e5e7eb;overflow:hidden;height:200px;display:flex;align-items:center;justify-content:center;">
+                            <iframe src="https://rohit-kashyap.github.io/couriermitra/track.html" width="100%" height="200" frameborder="0" scrolling="no" style="pointer-events:none;"></iframe>
+                        </div>
+                    </div>
+
+                    <!-- Embed Code -->
+                    <div style="margin-bottom:14px;">
+                        <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:8px;">Embed Code</div>
+                        <div style="position:relative;">
+                            <textarea id="embedCode" readonly rows="5"
+                                style="width:100%;padding:14px;background:#0f172a;color:#a5f3fc;font-family:'Courier New',monospace;font-size:13px;border:1px solid #1e293b;border-radius:8px;resize:none;line-height:1.6;"
+                            ></textarea>
+                            <button onclick="copyEmbedCode()" id="copyEmbedBtn"
+                                style="position:absolute;top:10px;right:10px;padding:6px 14px;background:#2563eb;color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;">
+                                📋 Copy
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Instructions -->
+                    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:14px;">
+                        <div style="font-size:12px;font-weight:700;color:#1d4ed8;margin-bottom:8px;">How to use</div>
+                        <ol style="font-size:13px;color:#1e40af;line-height:1.8;padding-left:18px;">
+                            <li>Copy the embed code above</li>
+                            <li>Open your website's HTML editor</li>
+                            <li>Paste the code wherever you want the tracking widget to appear</li>
+                            <li>Your customers can now track shipments directly on your site</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
     </div><!-- end .main-area -->
@@ -2352,7 +2396,33 @@
         document.getElementById('settingsCgst').value         = c.cgst_rate || '';
         document.getElementById('settingsSgst').value         = c.sgst_rate || '';
         document.getElementById('settingsIgst').value         = c.igst_rate || '';
+
+        // Embed code
+        const embedCode = `<!-- CourierMitra Tracking Widget -->
+<iframe
+  src="https://rohit-kashyap.github.io/couriermitra/track.html"
+  width="100%"
+  height="600"
+  frameborder="0"
+  style="border-radius:12px;border:1px solid #e5e7eb;"
+  title="Track Your Shipment">
+</iframe>`;
+        document.getElementById('embedCode').value = embedCode;
     }
+
+    window.copyEmbedCode = function() {
+        const textarea = document.getElementById('embedCode');
+        textarea.select();
+        navigator.clipboard.writeText(textarea.value).then(() => {
+            const btn = document.getElementById('copyEmbedBtn');
+            btn.textContent = '✅ Copied!';
+            btn.style.background = '#16a34a';
+            setTimeout(() => {
+                btn.textContent = '📋 Copy';
+                btn.style.background = '#2563eb';
+            }, 2000);
+        });
+    };
 
     window.saveSettings = async function(e) {
         e.preventDefault();

@@ -484,25 +484,34 @@
                 try {
                     console.log('Tracking AWB:', awbNumber);
 
-                    // Fetch shipment details with client info
+                    // Fetch shipment details
                     const { data: shipmentData, error: shipmentError } = await supabase
                         .from('shipments')
-                        .select(`*, clients (company_name, logo_url, primary_color)`)
+                        .select('*')
                         .eq('awb_no', awbNumber)
                         .single();
 
                     console.log('Shipment data:', shipmentData);
-                    console.log('Shipment error:', shipmentError);
+                    console.log('Shipment error:', JSON.stringify(shipmentError));
 
                     if (shipmentError || !shipmentData) {
                         resultContent.innerHTML = `
                             <div class="error-message">
                                 ❌ No shipment found with AWB: ${awbNumber}<br>
-                                <small style="margin-top: 10px; display: block;">Please check your tracking number and try again</small>
+                                <small style="margin-top: 10px; display: block;">${shipmentError ? shipmentError.message : 'Please check your tracking number and try again'}</small>
                             </div>
                         `;
                         return;
                     }
+
+                    // Fetch client info separately
+                    const { data: clientData } = await supabase
+                        .from('clients')
+                        .select('company_name')
+                        .eq('id', shipmentData.client_id)
+                        .single();
+
+                    shipmentData.clients = clientData || null;
 
                     // Fetch tracking events
                     const { data: trackingEvents, error: eventsError } = await supabase

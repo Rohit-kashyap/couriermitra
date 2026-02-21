@@ -551,6 +551,10 @@
                 return;
             }
 
+            // Sign out any existing Supabase session so anon RLS policies apply
+            // This ensures we see ALL clients, not just the logged-in one
+            await window.supabaseClient.auth.signOut();
+
             document.getElementById('userEmail').textContent = 'designer.rohitkashyap@gmail.com';
             document.getElementById('loadingScreen').style.display = 'none';
 

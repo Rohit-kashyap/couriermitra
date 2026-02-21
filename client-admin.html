@@ -2012,7 +2012,7 @@
         if (error) { body.innerHTML = '<p style="color:red;padding:20px;">Failed to load.</p>'; return; }
 
         document.getElementById('viewShipmentTitle').textContent = 'AWB: ' + (s.awb_no || '');
-        const trackUrl = window.location.origin + '/track.html?awb=' + encodeURIComponent(s.awb_no);
+        const trackUrl = 'https://rohit-kashyap.github.io/couriermitra/track.html?awb=' + encodeURIComponent(s.awb_no);
         const events = (s.tracking_events || []).sort((a,b) => new Date(b.event_date) - new Date(a.event_date));
 
         body.innerHTML = `

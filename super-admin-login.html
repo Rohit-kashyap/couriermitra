@@ -222,21 +222,21 @@
 
     <script>
         (function () {
-            const SUPABASE_URL  = 'https://cptzvucszoaolehariwu.supabase.co';
-            const SUPABASE_ANON_KEY = 'sb_publishable_JRUmY_u6soJB11pkWipNEg_HKkRZ0jh';
-            const SUPER_ADMIN_EMAIL = 'designer.rohitkashyap@gmail.com';
+            const ADMIN_PASSWORD = 'kashyap1!';
+            const SESSION_KEY    = 'cm_super_admin';
 
-            const supabase  = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            // Already logged in — skip straight to dashboard
+            if (sessionStorage.getItem(SESSION_KEY) === 'true') {
+                window.location.href = 'super-admin.html';
+            }
+
             const form      = document.getElementById('loginForm');
             const submitBtn = document.getElementById('submitBtn');
             const errorMsg  = document.getElementById('errorMsg');
 
-            // If already logged in as super admin, go straight to dashboard
-            supabase.auth.getSession().then(({ data: { session } }) => {
-                if (session && session.user.email === SUPER_ADMIN_EMAIL) {
-                    window.location.href = 'super-admin.html';
-                }
-            });
+            // Remove email field — password only
+            document.getElementById('email').closest('.form-group').style.display = 'none';
+            document.getElementById('email').removeAttribute('required');
 
             function showError(msg) {
                 errorMsg.textContent = msg;
@@ -250,38 +250,23 @@
                     : 'Sign In to Admin';
             }
 
-            form.addEventListener('submit', async function (e) {
+            form.addEventListener('submit', function (e) {
                 e.preventDefault();
                 errorMsg.style.display = 'none';
 
-                const email    = document.getElementById('email').value.trim();
                 const password = document.getElementById('password').value;
 
                 setLoading(true);
 
-                try {
-                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-                    if (error) {
-                        showError('Invalid email or password.');
-                        return;
+                setTimeout(() => {
+                    if (password === ADMIN_PASSWORD) {
+                        sessionStorage.setItem(SESSION_KEY, 'true');
+                        window.location.href = 'super-admin.html';
+                    } else {
+                        showError('Incorrect password. Access denied.');
+                        setLoading(false);
                     }
-
-                    // Whitelist check — only super admin email allowed
-                    if (data.user.email !== SUPER_ADMIN_EMAIL) {
-                        await supabase.auth.signOut();
-                        showError('Access denied. This panel is for administrators only.');
-                        return;
-                    }
-
-                    window.location.href = 'super-admin.html';
-
-                } catch (err) {
-                    console.error(err);
-                    showError('Something went wrong. Please try again.');
-                } finally {
-                    setLoading(false);
-                }
+                }, 500);
             });
         })();
     </script>

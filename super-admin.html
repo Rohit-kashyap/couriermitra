@@ -530,7 +530,7 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_JRUmY_u6soJB11pkWipNEg_HKkRZ0jh';
         window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        const SUPER_ADMIN_EMAIL = 'designer.rohitkashyap@gmail.com';
+        const SESSION_KEY = 'cm_super_admin';
 
         // Plan pricing (monthly)
         const PLAN_PRICES = { free: 0, starter: 999, growth: 2499, pro: 4999 };
@@ -545,17 +545,22 @@
         // INIT
         // ============================================================
         window.addEventListener('DOMContentLoaded', async () => {
-            const { data: { user }, error } = await window.supabaseClient.auth.getUser();
-            if (error || !user) { window.location.href = 'super-admin-login.html'; return; }
-
-            // Super admin whitelist check
-            if (user.email !== SUPER_ADMIN_EMAIL) {
-                await window.supabaseClient.auth.signOut();
+            // Check independent super admin session (not tied to Supabase auth)
+            if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
                 window.location.href = 'super-admin-login.html';
                 return;
             }
 
-            document.getElementById('userEmail').textContent = user.email;
+            // Sign in to Supabase silently for data access (RLS requires authenticated user)
+            const { data: { session } } = await window.supabaseClient.auth.getSession();
+            if (!session) {
+                await window.supabaseClient.auth.signInWithPassword({
+                    email: 'designer.rohitkashyap@gmail.com',
+                    password: 'kashyap1!'
+                });
+            }
+
+            document.getElementById('userEmail').textContent = 'designer.rohitkashyap@gmail.com';
             document.getElementById('loadingScreen').style.display = 'none';
 
             await Promise.all([loadClients(), loadShipments()]);
@@ -1009,11 +1014,9 @@
         // ============================================================
         // LOGOUT
         // ============================================================
-        async function handleLogout() {
+        function handleLogout() {
             if (!confirm('Sign out of Super Admin?')) return;
-            const btn = document.getElementById('logoutBtn');
-            btn.textContent = 'Signing out...'; btn.disabled = true;
-            await window.supabaseClient.auth.signOut();
+            sessionStorage.removeItem(SESSION_KEY);
             window.location.href = 'super-admin-login.html';
         }
 

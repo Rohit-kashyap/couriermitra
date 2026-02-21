@@ -69,11 +69,16 @@
             flex-shrink: 0;
         }
         .sidebar-logo {
-            padding: 20px; display: flex; align-items: center; gap: 10px;
+            padding: 18px 20px;
             border-bottom: 1px solid #f3f4f6;
         }
-        .logo-icon { font-size: 22px; }
-        .logo-text { font-size: 16px; font-weight: 800; color: #0f172a; }
+        .logo-company {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 4px;
+        }
+        .logo-icon { font-size: 20px; }
+        .logo-text { font-size: 15px; font-weight: 800; color: #0f172a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .logo-powered { font-size: 10px; color: #9ca3af; letter-spacing: 0.3px; padding-left: 2px; }
         .sidebar-nav { flex: 1; padding: 12px 8px; display: flex; flex-direction: column; gap: 2px; }
         .nav-item {
             display: flex; align-items: center; gap: 10px;
@@ -523,8 +528,11 @@
     <!-- SIDEBAR -->
     <div class="sidebar">
         <div class="sidebar-logo">
-            <span class="logo-icon">📦</span>
-            <span class="logo-text">CourierMitra</span>
+            <div class="logo-company">
+                <span class="logo-icon">📦</span>
+                <span class="logo-text" id="navCompanyName">My Company</span>
+            </div>
+            <div class="logo-powered">powered by CourierMitra</div>
         </div>
         <nav class="sidebar-nav">
             <a class="nav-item active" onclick="switchTab('shipments',this)">
@@ -541,7 +549,6 @@
             </a>
         </nav>
         <div class="sidebar-footer">
-            <div class="sidebar-company" id="navCompanyName">Company</div>
             <div class="sidebar-plan-badge">
                 <span class="plan-name" id="navPlanName">Free Trial</span>
                 <span class="plan-tag free" id="navPlanTag">Free</span>

@@ -434,7 +434,9 @@
         if (window.self !== window.top) document.body.classList.add('iframe-mode');
 
         const urlParams = new URLSearchParams(window.location.search);
-        const awbFromUrl = urlParams.get('awb');
+        const awbFromUrl    = urlParams.get('awb');
+        const clientIdParam = urlParams.get('client');
+
         if (awbFromUrl) {
             document.getElementById('awbInput').value = awbFromUrl;
             setTimeout(() => document.querySelector('.search-form').dispatchEvent(new Event('submit')), 400);
@@ -450,8 +452,12 @@
             resultContent.innerHTML = `<div class="loading"><div class="loading-spinner"></div>Tracking your shipment...</div>`;
 
             try {
-                const { data: shipment, error } = await supabase
-                    .from('shipments').select('*').eq('awb_no', awbNumber).single();
+                let query = supabase.from('shipments').select('*').eq('awb_no', awbNumber);
+
+                // If client ID is in URL, restrict search to that operator only
+                if (clientIdParam) query = query.eq('client_id', clientIdParam);
+
+                const { data: shipment, error } = await query.single();
 
                 if (error || !shipment) {
                     resultContent.innerHTML = `<div class="error-message">❌ No shipment found with AWB: <strong>${awbNumber}</strong><br><small style="margin-top:8px;display:block;font-weight:400;">${error ? error.message : 'Please check your tracking number and try again'}</small></div>`;
@@ -531,7 +537,7 @@
             const statusInfo   = getStatusInfo(status);
             const { steps, currentIdx } = getStepperState(status);
             const carrierUrl   = getCarrierUrl(carrierName, networkNo);
-            const trackingUrl  = 'https://rohit-kashyap.github.io/couriermitra/track.html?awb=' + encodeURIComponent(shipment.awb_no);
+            const trackingUrl  = 'https://rohit-kashyap.github.io/couriermitra/track.html?awb=' + encodeURIComponent(shipment.awb_no) + (clientIdParam ? '&client=' + encodeURIComponent(clientIdParam) : '');
 
             const bookingDate  = shipment.booking_date ? new Date(shipment.booking_date).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : '—';
             const deliveryDate = shipment.delivery_date ? new Date(shipment.delivery_date).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : null;

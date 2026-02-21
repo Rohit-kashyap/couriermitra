@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CourierMitra - Admin Login</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Subtle grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(102,126,234,0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(102,126,234,0.06) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+
+        .login-box {
+            background: #1e293b;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 44px 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 1;
+            animation: fadeUp 0.4s ease;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo-icon {
+            width: 56px; height: 56px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 14px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 26px;
+            margin-bottom: 14px;
+            box-shadow: 0 8px 24px rgba(102,126,234,0.4);
+        }
+
+        .logo h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        .logo p {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .admin-pill {
+            display: inline-block;
+            background: rgba(102,126,234,0.15);
+            border: 1px solid rgba(102,126,234,0.3);
+            color: #818cf8;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-top: 8px;
+            text-transform: uppercase;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            background: #0f172a;
+            border: 1.5px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            font-size: 14px;
+            color: white;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        input::placeholder { color: #475569; }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 6px;
+            font-family: inherit;
+            letter-spacing: 0.3px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(102,126,234,0.4);
+        }
+
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .error-msg {
+            background: rgba(220,38,38,0.12);
+            border: 1px solid rgba(220,38,38,0.3);
+            color: #f87171;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 13px;
+            margin-bottom: 18px;
+            display: none;
+            line-height: 1.5;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 15px; height: 15px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .divider {
+            border: none;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            margin: 28px 0 20px;
+        }
+
+        .back-link {
+            text-align: center;
+            font-size: 13px;
+            color: #475569;
+        }
+
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <div class="logo">
+            <div class="logo-icon">📦</div>
+            <h1>CourierMitra</h1>
+            <p>Internal administration panel</p>
+            <span class="admin-pill">Super Admin</span>
+        </div>
+
+        <div id="errorMsg" class="error-msg"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="admin@couriermitra.com" required autocomplete="email">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn" id="submitBtn">Sign In to Admin</button>
+        </form>
+
+        <hr class="divider">
+
+        <div class="back-link">
+            Courier operator? <a href="client-admin.html">Login here</a>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const SUPABASE_URL  = 'https://cptzvucszoaolehariwu.supabase.co';
+            const SUPABASE_ANON_KEY = 'sb_publishable_JRUmY_u6soJB11pkWipNEg_HKkRZ0jh';
+            const SUPER_ADMIN_EMAIL = 'designer.rohitkashyap@gmail.com';
+
+            const supabase  = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const form      = document.getElementById('loginForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const errorMsg  = document.getElementById('errorMsg');
+
+            // If already logged in as super admin, go straight to dashboard
+            supabase.auth.getSession().then(({ data: { session } }) => {
+                if (session && session.user.email === SUPER_ADMIN_EMAIL) {
+                    window.location.href = 'super-admin.html';
+                }
+            });
+
+            function showError(msg) {
+                errorMsg.textContent = msg;
+                errorMsg.style.display = 'block';
+            }
+
+            function setLoading(loading) {
+                submitBtn.disabled = loading;
+                submitBtn.innerHTML = loading
+                    ? '<span class="spinner"></span> Signing in...'
+                    : 'Sign In to Admin';
+            }
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                errorMsg.style.display = 'none';
+
+                const email    = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+
+                setLoading(true);
+
+                try {
+                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+                    if (error) {
+                        showError('Invalid email or password.');
+                        return;
+                    }
+
+                    // Whitelist check — only super admin email allowed
+                    if (data.user.email !== SUPER_ADMIN_EMAIL) {
+                        await supabase.auth.signOut();
+                        showError('Access denied. This panel is for administrators only.');
+                        return;
+                    }
+
+                    window.location.href = 'super-admin.html';
+
+                } catch (err) {
+                    console.error(err);
+                    showError('Something went wrong. Please try again.');
+                } finally {
+                    setLoading(false);
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

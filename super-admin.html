@@ -546,11 +546,12 @@
         // ============================================================
         window.addEventListener('DOMContentLoaded', async () => {
             const { data: { user }, error } = await window.supabaseClient.auth.getUser();
-            if (error || !user) { window.location.href = 'client-admin.html'; return; }
+            if (error || !user) { window.location.href = 'super-admin-login.html'; return; }
 
             // Super admin whitelist check
             if (user.email !== SUPER_ADMIN_EMAIL) {
-                window.location.href = 'client-admin.html';
+                await window.supabaseClient.auth.signOut();
+                window.location.href = 'super-admin-login.html';
                 return;
             }
 
@@ -1013,7 +1014,7 @@
             const btn = document.getElementById('logoutBtn');
             btn.textContent = 'Signing out...'; btn.disabled = true;
             await window.supabaseClient.auth.signOut();
-            window.location.href = 'client-admin.html';
+            window.location.href = 'super-admin-login.html';
         }
 
         // ============================================================

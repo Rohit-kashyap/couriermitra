@@ -3,760 +3,1239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CourierMitra - Super Admin</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>CourierMitra — Your Complete Courier Management Portal</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        :root {
+            --navy: #0a0f1e;
+            --navy2: #0f172a;
+            --navy3: #1e293b;
+            --blue: #2563eb;
+            --blue-light: #3b82f6;
+            --indigo: #4f46e5;
+            --purple: #7c3aed;
+            --text-muted: #94a3b8;
+            --text-light: #cbd5e1;
+            --border: rgba(255,255,255,0.08);
+        }
+
+        html { scroll-behavior: smooth; }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            background: var(--navy);
+            color: #f1f5f9;
+            line-height: 1.6;
         }
 
-        /* Loading Screen */
-        .loading-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex; flex-direction: column; justify-content: center;
-            align-items: center; z-index: 9999; color: white;
-        }
-        .loading-spinner {
-            width: 50px; height: 50px;
-            border: 5px solid rgba(255,255,255,0.3);
-            border-top-color: white; border-radius: 50%;
-            animation: spin 1s ease-in-out infinite; margin-bottom: 20px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .loading-text { font-size: 16px; font-weight: 600; }
-
-        /* Header */
-        .header {
-            background: white;
-            padding: 16px 30px;
-            display: flex; justify-content: space-between; align-items: center;
-            border-radius: 16px; margin: 20px; margin-bottom: 0;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-        }
-        .header-left { display: flex; align-items: center; gap: 14px; }
-        .header-avatar {
-            width: 48px; height: 48px; border-radius: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 20px; font-weight: 700;
-        }
-        .header-info h2 { font-size: 18px; font-weight: 700; color: #1a1a2e; }
-        .header-info p { font-size: 13px; color: #6b7280; }
-        .header-right { display: flex; align-items: center; gap: 12px; }
-        .plan-badge {
-            padding: 6px 14px; border-radius: 20px;
-            background: #ecfdf5; color: #059669;
-            font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
-            border: 1px solid #a7f3d0;
-        }
-        .logout-btn {
-            padding: 10px 22px; background: #f3f4f6; color: #374151;
-            border: 1px solid #e5e7eb; border-radius: 10px;
-            cursor: pointer; font-size: 14px; font-weight: 600;
-            transition: all 0.2s; display: flex; align-items: center; gap: 8px;
-        }
-        .logout-btn:hover { background: #fee2e2; color: #dc2626; border-color: #fecaca; }
-
-        /* Container */
-        .container { max-width: 1300px; margin: 24px auto; padding: 0 20px; }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr);
-            gap: 16px; margin-bottom: 24px;
-        }
-        .stat-card {
-            background: white; padding: 24px; border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-            display: flex; flex-direction: column; gap: 8px; position: relative; overflow: hidden;
-        }
-        .stat-card .stat-label {
-            font-size: 11px; font-weight: 600; color: #9ca3af;
-            text-transform: uppercase; letter-spacing: 0.8px;
-        }
-        .stat-card .stat-number { font-size: 36px; font-weight: 700; color: #1a1a2e; }
-        .stat-card .stat-icon {
-            position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
-            font-size: 42px; opacity: 0.07; color: #667eea;
+        /* ── UTILITIES ── */
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        /* Dashboard Card (tabs container) */
-        .dashboard-card {
-            background: white; border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.08); overflow: hidden;
+        /* ── NAV ── */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10,15,30,0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+        }
+        .nav-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .nav-brand {
+            font-size: 18px;
+            font-weight: 800;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            list-style: none;
+        }
+        .nav-links a {
+            font-size: 14px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: #f1f5f9; }
+        .nav-cta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .btn-ghost {
+            padding: 8px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-light);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .btn-ghost:hover { color: #fff; background: rgba(255,255,255,0.06); }
+        .btn-primary {
+            padding: 9px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, var(--blue) 0%, var(--indigo) 100%);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 4px 20px rgba(37,99,235,0.4);
+            transform: translateY(-1px);
         }
 
-        /* Tabs */
-        .tabs {
-            display: flex; gap: 4px; padding: 16px 20px 0;
-            border-bottom: 1px solid #f0f0f0;
+        /* ── HERO ── */
+        .hero {
+            padding: 100px 24px 80px;
+            text-align: center;
+            background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(37,99,235,0.18) 0%, transparent 70%);
+            position: relative;
+            overflow: hidden;
         }
-        .tab-btn {
-            padding: 10px 20px; border: none; background: transparent;
-            font-size: 14px; font-weight: 500; color: #6b7280;
-            cursor: pointer; border-radius: 8px 8px 0 0;
-            border-bottom: 2px solid transparent; transition: all 0.2s;
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 60% 40% at 70% 80%, rgba(124,58,237,0.1) 0%, transparent 60%);
+            pointer-events: none;
         }
-        .tab-btn:hover { color: #667eea; background: #f5f3ff; }
-        .tab-btn.active { color: #667eea; font-weight: 600; border-bottom-color: #667eea; background: transparent; }
-
-        /* Tab Content */
-        .tab-content { display: none; padding: 20px; }
-        .tab-content.active { display: block; }
-
-        /* Search + Action bar */
-        .content-bar {
-            display: flex; gap: 12px; margin-bottom: 16px; align-items: center;
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px;
+            background: rgba(37,99,235,0.15);
+            border: 1px solid rgba(37,99,235,0.3);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #93c5fd;
+            margin-bottom: 28px;
         }
-        .search-wrap { position: relative; flex: 1; }
-        .search-wrap i {
-            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-            color: #9ca3af; font-size: 14px;
+        .hero h1 {
+            font-size: 58px;
+            font-weight: 900;
+            line-height: 1.1;
+            color: #f1f5f9;
+            max-width: 760px;
+            margin: 0 auto 22px;
+            letter-spacing: -1px;
         }
-        .search-input {
-            width: 100%; padding: 11px 14px 11px 38px;
-            border: 1.5px solid #e5e7eb; border-radius: 10px;
-            font-size: 14px; color: #374151; transition: all 0.2s;
+        .hero p {
+            font-size: 18px;
+            color: var(--text-muted);
+            max-width: 520px;
+            margin: 0 auto 40px;
+            line-height: 1.7;
         }
-        .search-input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
-
-        .filter-select {
-            padding: 11px 14px; border: 1.5px solid #e5e7eb; border-radius: 10px;
-            font-size: 14px; color: #374151; background: white; cursor: pointer;
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
         }
-        .filter-select:focus { outline: none; border-color: #667eea; }
-
-        /* Table */
-        table { width: 100%; border-collapse: collapse; }
-        thead tr { border-bottom: 2px solid #f0f0f0; }
-        th { padding: 12px 14px; text-align: left; font-size: 12px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.6px; }
-        td { padding: 14px; font-size: 14px; color: #374151; border-bottom: 1px solid #f9fafb; }
-        tbody tr:hover { background: #fafafa; }
-        tbody tr:last-child td { border-bottom: none; }
-
-        /* Badges */
-        .badge {
-            display: inline-block; padding: 4px 12px; border-radius: 20px;
-            font-size: 12px; font-weight: 600;
+        .btn-hero-primary {
+            padding: 14px 32px;
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, var(--blue) 0%, var(--indigo) 100%);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.2s;
         }
-        .badge-active    { background: #ecfdf5; color: #059669; }
-        .badge-trial     { background: #eff6ff; color: #2563eb; }
-        .badge-suspended { background: #fef2f2; color: #dc2626; }
-        .badge-inactive  { background: #f3f4f6; color: #6b7280; }
-        .badge-pending   { background: #fffbeb; color: #d97706; }
-
-        .badge-delivered { background: #ecfdf5; color: #059669; }
-        .badge-transit   { background: #fffbeb; color: #d97706; }
-        .badge-booked    { background: #eff6ff; color: #2563eb; }
-        .badge-pickup    { background: #f5f3ff; color: #7c3aed; }
-        .badge-hold      { background: #fef2f2; color: #dc2626; }
-
-        /* Plan badge small */
-        .plan-tag {
-            display: inline-block; padding: 3px 10px; border-radius: 6px;
-            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+        .btn-hero-primary:hover {
+            box-shadow: 0 6px 28px rgba(37,99,235,0.45);
+            transform: translateY(-2px);
         }
-        .plan-free    { background: #f3f4f6; color: #6b7280; }
-        .plan-starter { background: #eff6ff; color: #2563eb; }
-        .plan-growth  { background: #f0fdf4; color: #16a34a; }
-        .plan-pro     { background: #faf5ff; color: #7c3aed; }
-
-        /* Action Buttons */
-        .action-btns { display: flex; gap: 6px; }
-        .btn-icon {
-            width: 34px; height: 34px; border: none; border-radius: 8px;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            font-size: 14px; transition: all 0.2s;
+        .btn-hero-ghost {
+            padding: 14px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #cbd5e1;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.2s;
         }
-        .btn-icon:hover { transform: translateY(-1px); }
-        .btn-view    { background: #667eea; color: white; }
-        .btn-edit    { background: #f3f4f6; color: #374151; }
-        .btn-delete  { background: #fef2f2; color: #dc2626; }
-        .btn-suspend { background: #fff7ed; color: #ea580c; }
-        .btn-activate { background: #ecfdf5; color: #059669; }
-
-        /* Client name with avatar */
-        .client-name-cell { display: flex; align-items: center; gap: 10px; }
-        .client-avatar {
-            width: 34px; height: 34px; border-radius: 8px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 13px; font-weight: 700; flex-shrink: 0;
+        .btn-hero-ghost:hover {
+            background: rgba(255,255,255,0.1);
+            color: #f1f5f9;
         }
-        .client-name-cell .name { font-weight: 600; color: #1a1a2e; }
-        .client-name-cell .email { font-size: 12px; color: #9ca3af; }
-
-        /* Empty State */
-        .empty-state { text-align: center; padding: 60px 20px; color: #9ca3af; }
-        .empty-state i { font-size: 48px; margin-bottom: 16px; display: block; opacity: 0.4; }
-        .empty-state h3 { font-size: 18px; font-weight: 600; color: #6b7280; margin-bottom: 6px; }
-        .empty-state p { font-size: 14px; }
-
-        /* Modal */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 1000;
-            display: flex; align-items: center; justify-content: center; padding: 20px;
+        .hero-note {
+            margin-top: 18px;
+            font-size: 13px;
+            color: var(--text-muted);
         }
-        .modal {
-            background: white; border-radius: 16px; padding: 28px;
-            width: 100%; max-width: 520px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-header h3 { font-size: 18px; font-weight: 700; color: #1a1a2e; }
-        .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #9ca3af; }
-        .modal-close:hover { color: #374151; }
-        .modal-body { display: flex; flex-direction: column; gap: 14px; }
-        .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f3f4f6; }
-        .detail-row:last-child { border-bottom: none; }
-        .detail-label { font-size: 13px; color: #9ca3af; font-weight: 500; }
-        .detail-value { font-size: 14px; color: #1a1a2e; font-weight: 600; }
-        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-danger { padding: 10px 20px; background: #dc2626; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; flex: 1; }
-        .btn-success { padding: 10px 20px; background: #059669; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; flex: 1; }
-        .btn-secondary { padding: 10px 20px; background: #f3f4f6; color: #374151; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; flex: 1; }
+        .hero-note span { color: #4ade80; font-weight: 600; }
 
-        /* Plan select in modal */
-        .modal-select {
-            width: 100%; padding: 10px 14px; border: 1.5px solid #e5e7eb;
-            border-radius: 10px; font-size: 14px; color: #374151;
+        /* Stats */
+        .hero-stats {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 48px;
+            margin-top: 64px;
+            padding-top: 40px;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
         }
-        .modal-select:focus { outline: none; border-color: #667eea; }
+        .hero-stat-num {
+            font-size: 32px;
+            font-weight: 800;
+            color: #f1f5f9;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .hero-stat-label { font-size: 13px; color: var(--text-muted); }
 
-        /* Responsive */
+        /* ── PROBLEM SECTION ── */
+        .section { padding: 90px 24px; }
+        .section-label {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #60a5fa;
+            margin-bottom: 14px;
+        }
+        .section-title {
+            font-size: 38px;
+            font-weight: 800;
+            color: #f1f5f9;
+            line-height: 1.2;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+        .section-sub {
+            font-size: 17px;
+            color: var(--text-muted);
+            max-width: 560px;
+            line-height: 1.7;
+        }
+
+        .problem-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+        }
+        .pain-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 32px;
+        }
+        .pain-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 16px 18px;
+            background: rgba(239,68,68,0.06);
+            border: 1px solid rgba(239,68,68,0.15);
+            border-radius: 12px;
+        }
+        .pain-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+        .pain-text { font-size: 14px; color: #e2e8f0; line-height: 1.5; }
+        .pain-text strong { color: #fca5a5; font-weight: 600; }
+
+        .solution-box {
+            background: linear-gradient(135deg, rgba(37,99,235,0.12) 0%, rgba(124,58,237,0.12) 100%);
+            border: 1px solid rgba(99,102,241,0.25);
+            border-radius: 20px;
+            padding: 36px;
+        }
+        .solution-box .solution-header {
+            font-size: 22px;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 6px;
+        }
+        .solution-box .solution-sub {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+        .solution-checks {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .solution-check {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+            color: #e2e8f0;
+        }
+        .solution-check .check-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(37,99,235,0.2);
+            border: 1px solid rgba(99,102,241,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+            color: #93c5fd;
+        }
+
+        /* ── FEATURES ── */
+        .features-section {
+            padding: 90px 24px;
+            background: linear-gradient(180deg, transparent 0%, rgba(37,99,235,0.04) 50%, transparent 100%);
+        }
+        .features-header { text-align: center; margin-bottom: 60px; }
+        .features-header .section-sub { margin: 0 auto; }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .feature-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            transition: all 0.25s;
+        }
+        .feature-card:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(99,102,241,0.35);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+        }
+        .feature-icon-wrap {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(37,99,235,0.2) 0%, rgba(124,58,237,0.2) 100%);
+            border: 1px solid rgba(99,102,241,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 18px;
+        }
+        .feature-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 8px;
+        }
+        .feature-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* ── HOW IT WORKS ── */
+        .how-section { padding: 90px 24px; }
+        .how-header { text-align: center; margin-bottom: 60px; }
+
+        .steps-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            position: relative;
+        }
+        .steps-row::before {
+            content: '';
+            position: absolute;
+            top: 28px;
+            left: calc(50% / 3 + 16.67%);
+            right: calc(50% / 3 + 16.67%);
+            height: 2px;
+            background: linear-gradient(90deg, rgba(37,99,235,0.4) 0%, rgba(124,58,237,0.4) 100%);
+        }
+        .step {
+            text-align: center;
+            padding: 0 24px;
+            position: relative;
+        }
+        .step-num {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--blue) 0%, var(--indigo) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 800;
+            color: white;
+            margin: 0 auto 20px;
+            box-shadow: 0 0 0 6px rgba(37,99,235,0.15);
+            position: relative;
+            z-index: 1;
+        }
+        .step-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 10px;
+        }
+        .step-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.65;
+        }
+
+        /* ── TRACKING MOCKUP ── */
+        .tracking-section {
+            padding: 90px 24px;
+            background: linear-gradient(180deg, transparent 0%, rgba(124,58,237,0.04) 50%, transparent 100%);
+        }
+        .tracking-inner {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+        .tracking-mockup {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px;
+            order: -1;
+        }
+        .mockup-topbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid var(--border);
+        }
+        .mockup-dots { display: flex; gap: 6px; }
+        .mockup-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .mockup-dot:nth-child(1) { background: #ef4444; }
+        .mockup-dot:nth-child(2) { background: #f59e0b; }
+        .mockup-dot:nth-child(3) { background: #22c55e; }
+        .mockup-url {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .mockup-awb {
+            font-size: 13px;
+            font-weight: 700;
+            color: #60a5fa;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .mockup-consignee {
+            font-size: 18px;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 4px;
+        }
+        .mockup-dest {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 22px;
+        }
+        .mockup-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: rgba(34,197,94,0.1);
+            border: 1px solid rgba(34,197,94,0.25);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #4ade80;
+            margin-bottom: 24px;
+        }
+        .mockup-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        .timeline-item {
+            display: flex;
+            gap: 14px;
+            position: relative;
+        }
+        .timeline-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 9px;
+            top: 22px;
+            bottom: -6px;
+            width: 2px;
+            background: rgba(255,255,255,0.08);
+        }
+        .tl-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 2px;
+            border: 2px solid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .tl-dot.done { background: rgba(34,197,94,0.2); border-color: #22c55e; }
+        .tl-dot.done::after { content: ''; width: 7px; height: 7px; background: #22c55e; border-radius: 50%; }
+        .tl-dot.current { background: rgba(37,99,235,0.2); border-color: #3b82f6; }
+        .tl-dot.current::after { content: ''; width: 7px; height: 7px; background: #3b82f6; border-radius: 50%; }
+        .tl-dot.pending { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.12); }
+        .tl-body { padding-bottom: 18px; }
+        .tl-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .tl-title.done { color: #e2e8f0; }
+        .tl-title.current { color: #93c5fd; }
+        .tl-title.pending { color: #475569; }
+        .tl-date { font-size: 12px; color: var(--text-muted); }
+        .tl-date.pending { color: #334155; }
+
+        /* ── PRICING ── */
+        .pricing-section { padding: 90px 24px; }
+        .pricing-header { text-align: center; margin-bottom: 54px; }
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            max-width: 780px;
+            margin: 0 auto;
+        }
+        .pricing-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 36px 30px;
+            position: relative;
+        }
+        .pricing-card.featured {
+            border-color: rgba(37,99,235,0.5);
+            background: linear-gradient(135deg, rgba(37,99,235,0.08) 0%, rgba(124,58,237,0.08) 100%);
+            box-shadow: 0 0 0 1px rgba(37,99,235,0.2), 0 20px 60px rgba(37,99,235,0.1);
+        }
+        .pricing-badge {
+            position: absolute;
+            top: -13px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--blue) 0%, var(--indigo) 100%);
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding: 4px 16px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        .pricing-plan-name {
+            font-size: 22px;
+            font-weight: 800;
+            color: #f1f5f9;
+            margin-bottom: 4px;
+        }
+        .pricing-tagline {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+        .pricing-amount {
+            font-size: 48px;
+            font-weight: 900;
+            color: #f1f5f9;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .pricing-amount .cur { font-size: 24px; vertical-align: top; margin-top: 8px; display: inline-block; }
+        .pricing-amount .per { font-size: 16px; font-weight: 500; color: var(--text-muted); }
+        .pricing-note { font-size: 12px; color: #475569; margin-bottom: 24px; }
+        .pricing-divider { height: 1px; background: rgba(255,255,255,0.07); margin-bottom: 22px; }
+        .pricing-features { list-style: none; margin-bottom: 28px; }
+        .pricing-features li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 14px;
+            color: #cbd5e1;
+            padding: 6px 0;
+            line-height: 1.4;
+        }
+        .pricing-features li .fi { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+        .pricing-features li.na { color: #334155; }
+        .pricing-features li strong { color: #f1f5f9; font-weight: 600; }
+        .btn-pricing {
+            display: block;
+            width: 100%;
+            padding: 13px;
+            text-align: center;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .btn-pricing-free {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #e2e8f0;
+        }
+        .btn-pricing-free:hover { background: rgba(255,255,255,0.1); }
+        .btn-pricing-starter {
+            background: linear-gradient(135deg, var(--blue) 0%, var(--indigo) 100%);
+            color: white;
+            border: none;
+        }
+        .btn-pricing-starter:hover { box-shadow: 0 4px 20px rgba(37,99,235,0.45); transform: translateY(-1px); }
+
+        /* ── FAQ ── */
+        .faq-section { padding: 90px 24px; }
+        .faq-header { text-align: center; margin-bottom: 52px; }
+        .faq-list {
+            max-width: 680px;
+            margin: 0 auto;
+        }
+        .faq-item {
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+        .faq-q {
+            width: 100%;
+            background: none;
+            border: none;
+            color: #e2e8f0;
+            font-size: 15px;
+            font-weight: 600;
+            text-align: left;
+            padding: 20px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            font-family: inherit;
+            line-height: 1.4;
+        }
+        .faq-q:hover { color: #f1f5f9; }
+        .faq-arrow {
+            font-size: 18px;
+            color: var(--text-muted);
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+        .faq-item.open .faq-arrow { transform: rotate(180deg); }
+        .faq-a {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+        .faq-item.open .faq-a {
+            max-height: 300px;
+            padding-bottom: 20px;
+        }
+
+        /* ── CTA BANNER ── */
+        .cta-section {
+            padding: 80px 24px;
+            text-align: center;
+        }
+        .cta-inner {
+            background: linear-gradient(135deg, rgba(37,99,235,0.15) 0%, rgba(124,58,237,0.15) 100%);
+            border: 1px solid rgba(99,102,241,0.3);
+            border-radius: 24px;
+            padding: 64px 40px;
+            max-width: 760px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-inner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(37,99,235,0.1) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .cta-inner h2 {
+            font-size: 36px;
+            font-weight: 800;
+            color: #f1f5f9;
+            margin-bottom: 14px;
+            line-height: 1.2;
+            position: relative;
+        }
+        .cta-inner p {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-bottom: 36px;
+            line-height: 1.6;
+            position: relative;
+        }
+        .cta-btns {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            position: relative;
+        }
+        .btn-cta-primary {
+            padding: 14px 34px;
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, var(--blue) 0%, var(--indigo) 100%);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+        .btn-cta-primary:hover { box-shadow: 0 6px 28px rgba(37,99,235,0.45); transform: translateY(-2px); }
+        .btn-cta-ghost {
+            padding: 14px 34px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #cbd5e1;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+        .btn-cta-ghost:hover { background: rgba(255,255,255,0.1); color: #f1f5f9; }
+        .cta-note { margin-top: 18px; font-size: 13px; color: #475569; position: relative; }
+
+        /* ── FOOTER ── */
+        .footer {
+            border-top: 1px solid var(--border);
+            padding: 40px 24px;
+        }
+        .footer-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .footer-brand {
+            font-size: 16px;
+            font-weight: 800;
+            color: #f1f5f9;
+        }
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+        .footer-links a {
+            font-size: 13px;
+            color: #475569;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover { color: var(--text-muted); }
+        .footer-copy { font-size: 13px; color: #334155; }
+
+        /* ── RESPONSIVE ── */
         @media (max-width: 900px) {
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .hero h1 { font-size: 40px; }
+            .problem-grid { grid-template-columns: 1fr; }
+            .tracking-inner { grid-template-columns: 1fr; }
+            .tracking-mockup { order: 0; }
+            .features-grid { grid-template-columns: 1fr 1fr; }
+            .pricing-grid { grid-template-columns: 1fr; max-width: 440px; }
         }
-        @media (max-width: 600px) {
-            .stats-grid { grid-template-columns: 1fr 1fr; }
-            .header { margin: 12px; flex-wrap: wrap; gap: 12px; }
-            .container { padding: 0 12px; }
+        @media (max-width: 640px) {
+            .nav-links { display: none; }
+            .hero { padding: 70px 20px 60px; }
+            .hero h1 { font-size: 32px; letter-spacing: -0.5px; }
+            .hero p { font-size: 16px; }
+            .hero-stats { gap: 28px; }
+            .section-title { font-size: 28px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .steps-row { grid-template-columns: 1fr; gap: 32px; }
+            .steps-row::before { display: none; }
+            .pricing-grid { grid-template-columns: 1fr; }
+            .cta-inner { padding: 44px 24px; }
+            .cta-inner h2 { font-size: 26px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Loading Screen -->
-    <div id="loadingScreen" class="loading-screen">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">Loading Super Admin...</div>
-    </div>
-
-    <!-- Header -->
-    <div class="header">
-        <div class="header-left">
-            <div class="header-avatar">S</div>
-            <div class="header-info">
-                <h2>Super Admin</h2>
-                <p id="userEmail">Loading...</p>
-            </div>
-        </div>
-        <div class="header-right">
-            <span class="plan-badge">SUPER ADMIN</span>
-            <button class="logout-btn" onclick="handleLogout()" id="logoutBtn">
-                Logout
-            </button>
+<!-- ── NAV ── -->
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="index.html" class="nav-brand">📦 CourierMitra</a>
+        <ul class="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How it works</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#faq">FAQ</a></li>
+        </ul>
+        <div class="nav-cta">
+            <a href="client-admin.html" class="btn-ghost">Sign in</a>
+            <a href="signup.html" class="btn-primary">Get started free</a>
         </div>
     </div>
+</nav>
 
-    <!-- Main Container -->
+<!-- ── HERO ── -->
+<section class="hero">
     <div class="container">
-
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <span class="stat-label">Total Clients</span>
-                <span class="stat-number" id="statTotalClients">0</span>
-                <i class="fas fa-building stat-icon"></i>
+        <div class="hero-badge">✦ Designed for courier businesses in India</div>
+        <h1>Your complete courier<br><span class="gradient-text">management portal</span></h1>
+        <p>Book shipments, track deliveries, manage customers and generate invoices — all from one clean dashboard.</p>
+        <div class="hero-actions">
+            <a href="signup.html" class="btn-hero-primary">Start free — no card needed</a>
+            <a href="#how-it-works" class="btn-hero-ghost">See how it works</a>
+        </div>
+        <p class="hero-note"><span>14-day free trial</span> · No credit card required · Set up in minutes</p>
+        <div class="hero-stats">
+            <div>
+                <div class="hero-stat-num">100+</div>
+                <div class="hero-stat-label">Shipments / trial</div>
             </div>
-            <div class="stat-card">
-                <span class="stat-label">Active Clients</span>
-                <span class="stat-number" id="statActiveClients">0</span>
-                <i class="fas fa-check-circle stat-icon"></i>
+            <div>
+                <div class="hero-stat-num">15+</div>
+                <div class="hero-stat-label">Carriers supported</div>
             </div>
-            <div class="stat-card">
-                <span class="stat-label">Total Shipments</span>
-                <span class="stat-number" id="statTotalShipments">0</span>
-                <i class="fas fa-box stat-icon"></i>
+            <div>
+                <div class="hero-stat-num">₹0</div>
+                <div class="hero-stat-label">To get started</div>
             </div>
-            <div class="stat-card">
-                <span class="stat-label">Trial Accounts</span>
-                <span class="stat-number" id="statTrialClients">0</span>
-                <i class="fas fa-clock stat-icon"></i>
+            <div>
+                <div class="hero-stat-num">24h</div>
+                <div class="hero-stat-label">Activation on paid plan</div>
             </div>
         </div>
+    </div>
+</section>
 
-        <!-- Dashboard Card -->
-        <div class="dashboard-card">
-
-            <!-- Tabs -->
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('clients', this)">
-                    <i class="fas fa-building"></i> Clients
-                </button>
-                <button class="tab-btn" onclick="switchTab('shipments', this)">
-                    <i class="fas fa-box"></i> Shipments
-                </button>
-            </div>
-
-            <!-- CLIENTS TAB -->
-            <div id="tab-clients" class="tab-content active">
-                <div class="content-bar">
-                    <div class="search-wrap">
-                        <i class="fas fa-search"></i>
-                        <input type="text" class="search-input" id="clientSearch" placeholder="Search by company name or email..." oninput="filterClients()">
+<!-- ── PROBLEM ── -->
+<section class="section" id="problem">
+    <div class="container">
+        <div class="problem-grid">
+            <div>
+                <span class="section-label">The problem</span>
+                <h2 class="section-title">Running a courier business on spreadsheets?</h2>
+                <p class="section-sub">Most small courier businesses still track shipments manually — losing time, making errors, and frustrating customers.</p>
+                <div class="pain-list">
+                    <div class="pain-item">
+                        <span class="pain-icon">📋</span>
+                        <div class="pain-text"><strong>Manual Excel sheets</strong> — error-prone, hard to share, impossible to search at scale</div>
                     </div>
-                    <select class="filter-select" id="clientStatusFilter" onchange="filterClients()">
-                        <option value="">All Statuses</option>
-                        <option value="active">Active</option>
-                        <option value="trial">Trial</option>
-                        <option value="suspended">Suspended</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="pending">Pending</option>
-                    </select>
-                    <select class="filter-select" id="clientPlanFilter" onchange="filterClients()">
-                        <option value="">All Plans</option>
-                        <option value="free">Free</option>
-                        <option value="starter">Starter</option>
-                        <option value="growth">Growth</option>
-                        <option value="pro">Pro</option>
-                    </select>
-                </div>
-
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Company</th>
-                            <th>Plan</th>
-                            <th>Status</th>
-                            <th>Shipments</th>
-                            <th>Joined</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="clientsTable"></tbody>
-                </table>
-                <div id="clientsEmpty" class="empty-state" style="display:none;">
-                    <i class="fas fa-building"></i>
-                    <h3>No Clients Found</h3>
-                    <p>No registered courier businesses yet</p>
+                    <div class="pain-item">
+                        <span class="pain-icon">🔍</span>
+                        <div class="pain-text"><strong>No tracking page</strong> — customers call you every day to ask "where is my parcel?"</div>
+                    </div>
+                    <div class="pain-item">
+                        <span class="pain-icon">🧾</span>
+                        <div class="pain-text"><strong>Invoicing is painful</strong> — manually typing bills, forgetting shipments, miscalculating GST</div>
+                    </div>
+                    <div class="pain-item">
+                        <span class="pain-icon">📦</span>
+                        <div class="pain-text"><strong>No AWB system</strong> — generating shipment numbers by hand, risking duplicates</div>
+                    </div>
                 </div>
             </div>
-
-            <!-- SHIPMENTS TAB -->
-            <div id="tab-shipments" class="tab-content">
-                <div class="content-bar">
-                    <div class="search-wrap">
-                        <i class="fas fa-search"></i>
-                        <input type="text" class="search-input" id="shipmentSearch" placeholder="Search by AWB, consignee, destination..." oninput="filterShipments()">
+            <div class="solution-box">
+                <div class="solution-header">CourierMitra solves all of this</div>
+                <div class="solution-sub">One portal to replace your spreadsheets, WhatsApp messages and manual billing.</div>
+                <div class="solution-checks">
+                    <div class="solution-check">
+                        <div class="check-icon">✓</div>
+                        Auto-generate unique AWB numbers for every shipment
                     </div>
-                    <select class="filter-select" id="shipmentStatusFilter" onchange="filterShipments()">
-                        <option value="">All Statuses</option>
-                        <option value="Booked">Booked</option>
-                        <option value="Picked Up">Picked Up</option>
-                        <option value="In Transit">In Transit</option>
-                        <option value="Out for Delivery">Out for Delivery</option>
-                        <option value="Delivered">Delivered</option>
-                        <option value="On Hold">On Hold</option>
-                    </select>
+                    <div class="solution-check">
+                        <div class="check-icon">✓</div>
+                        Public tracking link you can share directly with customers
+                    </div>
+                    <div class="solution-check">
+                        <div class="check-icon">✓</div>
+                        One-click invoice generation with GST breakdown
+                    </div>
+                    <div class="solution-check">
+                        <div class="check-icon">✓</div>
+                        Manage all customers and shipment history in one place
+                    </div>
+                    <div class="solution-check">
+                        <div class="check-icon">✓</div>
+                        Export any data to Excel anytime you need it
+                    </div>
+                    <div class="solution-check">
+                        <div class="check-icon">✓</div>
+                        Works on desktop and mobile — no app install needed
+                    </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</section>
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>AWB</th>
-                            <th>Client</th>
-                            <th>Consignee</th>
-                            <th>Destination</th>
-                            <th>Status</th>
-                            <th>Booking Date</th>
-                        </tr>
-                    </thead>
-                    <tbody id="shipmentsTable"></tbody>
-                </table>
-                <div id="shipmentsEmpty" class="empty-state" style="display:none;">
-                    <i class="fas fa-box-open"></i>
-                    <h3>No Shipments Found</h3>
-                    <p>No shipments across all clients yet</p>
+<!-- ── FEATURES ── -->
+<section class="features-section" id="features">
+    <div class="container">
+        <div class="features-header">
+            <span class="section-label">Features</span>
+            <h2 class="section-title">Everything your courier business needs</h2>
+            <p class="section-sub">Built specifically for small and growing courier businesses in India — no bloat, just what matters.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon-wrap">📦</div>
+                <div class="feature-title">Smart AWB Generation</div>
+                <div class="feature-desc">Automatically generate unique shipment numbers using your custom prefix. No duplicates, no manual counting — ever.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap">🔗</div>
+                <div class="feature-title">Public Tracking Page</div>
+                <div class="feature-desc">Every shipment gets a shareable tracking link. Customers see live status updates without calling you.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap">🧾</div>
+                <div class="feature-title">Invoice Generation</div>
+                <div class="feature-desc">Generate professional invoices with automatic GST, CGST, SGST calculations. Print or share as PDF instantly.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap">👥</div>
+                <div class="feature-title">Customer Management</div>
+                <div class="feature-desc">Maintain a complete directory of your customers with GST numbers, addresses, and full shipment history.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap">🚚</div>
+                <div class="feature-title">15+ Carrier Options</div>
+                <div class="feature-desc">Book shipments with DHL, FedEx, Blue Dart, DTDC, Delhivery, Aramex and many more — all from one place.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap">📊</div>
+                <div class="feature-title">Dashboard & Reports</div>
+                <div class="feature-desc">See live shipment counts, status breakdowns and revenue stats. Export to Excel for your accountant anytime.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="how-section" id="how-it-works">
+    <div class="container">
+        <div class="how-header">
+            <span class="section-label">How it works</span>
+            <h2 class="section-title">Up and running in minutes</h2>
+            <p class="section-sub" style="margin:0 auto;">No training needed. If you can use WhatsApp, you can use CourierMitra.</p>
+        </div>
+        <div class="steps-row">
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-title">Create your account</div>
+                <div class="step-desc">Sign up with your email, company name, and pick a 2–5 letter AWB prefix. Ready in under 2 minutes — no credit card needed.</div>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-title">Book your first shipment</div>
+                <div class="step-desc">Fill in the consignee details, select your carrier, enter weight and amount. CourierMitra auto-generates the AWB number for you.</div>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-title">Share the tracking link</div>
+                <div class="step-desc">Send the public tracking URL to your customer on WhatsApp. They can track their parcel in real-time — without calling you.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── TRACKING MOCKUP ── -->
+<section class="tracking-section">
+    <div class="container">
+        <div class="tracking-inner">
+            <div class="tracking-mockup">
+                <div class="mockup-topbar">
+                    <div class="mockup-dots">
+                        <div class="mockup-dot"></div>
+                        <div class="mockup-dot"></div>
+                        <div class="mockup-dot"></div>
+                    </div>
+                    <div class="mockup-url">couriermitra.com/track/EXP000247</div>
                 </div>
+                <div class="mockup-awb">AWB: EXP000247</div>
+                <div class="mockup-consignee">Rajesh Kumar</div>
+                <div class="mockup-dest">Mumbai → Bangalore · Blue Dart</div>
+                <div class="mockup-status">
+                    <span>●</span> In Transit
+                </div>
+                <div class="mockup-timeline">
+                    <div class="timeline-item">
+                        <div class="tl-dot done"></div>
+                        <div class="tl-body">
+                            <div class="tl-title done">Shipment Booked</div>
+                            <div class="tl-date">20 Feb 2026 · 10:42 AM</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="tl-dot done"></div>
+                        <div class="tl-body">
+                            <div class="tl-title done">Picked Up</div>
+                            <div class="tl-date">20 Feb 2026 · 3:15 PM</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="tl-dot current"></div>
+                        <div class="tl-body">
+                            <div class="tl-title current">In Transit — Delhi Hub</div>
+                            <div class="tl-date">21 Feb 2026 · 8:00 AM</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="tl-dot pending"></div>
+                        <div class="tl-body">
+                            <div class="tl-title pending">Out for Delivery</div>
+                            <div class="tl-date pending">Expected 22 Feb 2026</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="tl-dot pending"></div>
+                        <div class="tl-body">
+                            <div class="tl-title pending">Delivered</div>
+                            <div class="tl-date pending">Pending</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="section-label">Live Tracking</span>
+                <h2 class="section-title">A tracking page your customers will love</h2>
+                <p class="section-sub">Every shipment you book automatically gets a public tracking URL. Share it on WhatsApp — no login needed for your customers.</p>
+                <div class="solution-checks" style="margin-top:28px;">
+                    <div class="solution-check">
+                        <div class="check-icon">✓</div>
+                        No app download required for your customers
+                    </div>
+                    <div class="solution-check">
+                        <div class="check-icon">✓</div>
+                        Real-time status updates as you update shipments
+                    </div>
+                    <div class="solution-check">
+                        <div class="check-icon">✓</div>
+                        Complete timeline from booking to delivery
+                    </div>
+                    <div class="solution-check">
+                        <div class="check-icon">✓</div>
+                        Your branding — company name shown on the page
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── PRICING ── -->
+<section class="pricing-section" id="pricing">
+    <div class="container">
+        <div class="pricing-header">
+            <span class="section-label">Pricing</span>
+            <h2 class="section-title">Simple, honest pricing</h2>
+            <p class="section-sub" style="margin:0 auto;">Start free for 14 days — no credit card. Upgrade when you need more.</p>
+        </div>
+        <div class="pricing-grid">
+
+            <!-- Free Trial -->
+            <div class="pricing-card">
+                <div style="font-size:28px;margin-bottom:14px;">🚀</div>
+                <div class="pricing-plan-name">Free Trial</div>
+                <div class="pricing-tagline">Everything to get started</div>
+                <div class="pricing-amount"><span class="cur">₹</span>0</div>
+                <div class="pricing-note">14 days · no credit card needed</div>
+                <div class="pricing-divider"></div>
+                <ul class="pricing-features">
+                    <li><span class="fi">✅</span> Up to <strong>100 shipments</strong></li>
+                    <li><span class="fi">✅</span> <strong>1 login</strong> (owner)</li>
+                    <li><span class="fi">✅</span> AWB auto-generation</li>
+                    <li><span class="fi">✅</span> Customer management</li>
+                    <li><span class="fi">✅</span> Public tracking link</li>
+                    <li><span class="fi">✅</span> All 15+ carriers</li>
+                    <li class="na"><span class="fi">✗</span> Invoice generation</li>
+                    <li class="na"><span class="fi">✗</span> Excel export</li>
+                    <li class="na"><span class="fi">✗</span> Priority support</li>
+                </ul>
+                <a href="signup.html" class="btn-pricing btn-pricing-free">Start Free Trial</a>
+            </div>
+
+            <!-- Starter -->
+            <div class="pricing-card featured">
+                <div class="pricing-badge">⭐ Recommended</div>
+                <div style="font-size:28px;margin-bottom:14px;">⚡</div>
+                <div class="pricing-plan-name">Starter</div>
+                <div class="pricing-tagline">For growing courier businesses</div>
+                <div class="pricing-amount"><span class="cur">₹</span>999 <span class="per">/ mo</span></div>
+                <div class="pricing-note">Billed monthly · cancel anytime</div>
+                <div class="pricing-divider"></div>
+                <ul class="pricing-features">
+                    <li><span class="fi">✅</span> Up to <strong>500 shipments/month</strong></li>
+                    <li><span class="fi">✅</span> <strong>2 logins</strong> (owner + staff)</li>
+                    <li><span class="fi">✅</span> AWB auto-generation</li>
+                    <li><span class="fi">✅</span> Customer management</li>
+                    <li><span class="fi">✅</span> Public tracking link</li>
+                    <li><span class="fi">✅</span> All 15+ carriers</li>
+                    <li><span class="fi">✅</span> Invoice generation</li>
+                    <li><span class="fi">✅</span> Excel export</li>
+                    <li><span class="fi">✅</span> Priority support</li>
+                </ul>
+                <a href="mailto:support@couriermitra.com?subject=CourierMitra%20Starter%20Plan%20%E2%80%94%20Activation%20Request" class="btn-pricing btn-pricing-starter">Get Starter Plan</a>
             </div>
 
         </div>
     </div>
+</section>
 
-    <!-- Client Detail Modal -->
-    <div id="clientModal" class="modal-overlay" style="display:none;" onclick="closeModalOnOverlay(event)">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 id="modalTitle">Client Details</h3>
-                <button class="modal-close" onclick="closeClientModal()">&times;</button>
+<!-- ── FAQ ── -->
+<section class="faq-section" id="faq">
+    <div class="container">
+        <div class="faq-header">
+            <span class="section-label">FAQ</span>
+            <h2 class="section-title">Common questions</h2>
+        </div>
+        <div class="faq-list">
+            <div class="faq-item">
+                <button class="faq-q" onclick="toggleFaq(this)">
+                    Do I need a credit card to start?
+                    <span class="faq-arrow">▾</span>
+                </button>
+                <div class="faq-a">No. The 14-day free trial is completely free — no payment details required. Just sign up and start managing shipments right away.</div>
             </div>
-            <div class="modal-body" id="modalBody"></div>
-            <div class="modal-actions" id="modalActions"></div>
+            <div class="faq-item">
+                <button class="faq-q" onclick="toggleFaq(this)">
+                    What happens when my trial ends?
+                    <span class="faq-arrow">▾</span>
+                </button>
+                <div class="faq-a">Your account is paused but your data is safe. You can upgrade to the Starter plan at any time and everything is reactivated immediately. You won't lose any shipment history or customer records.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q" onclick="toggleFaq(this)">
+                    How do I activate the Starter plan?
+                    <span class="faq-arrow">▾</span>
+                </button>
+                <div class="faq-a">Click "Get Starter Plan" or the upgrade button inside your dashboard. It opens a pre-filled email to our team. We'll contact you to process payment and activate your account within 24 hours.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q" onclick="toggleFaq(this)">
+                    Can I cancel anytime?
+                    <span class="faq-arrow">▾</span>
+                </button>
+                <div class="faq-a">Yes. There are no long-term contracts. Just email us at support@couriermitra.com and we'll cancel your subscription at the end of the current billing month.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q" onclick="toggleFaq(this)">
+                    What is an AWB prefix?
+                    <span class="faq-arrow">▾</span>
+                </button>
+                <div class="faq-a">AWB stands for Air Waybill — it's a unique shipment number. Your prefix is a 2–5 letter code (like "EXP" or "SWF") that gets added before each number. So if your prefix is EXP, your shipments are EXP000001, EXP000002, and so on.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q" onclick="toggleFaq(this)">
+                    Does my customer need to download an app to track?
+                    <span class="faq-arrow">▾</span>
+                </button>
+                <div class="faq-a">No app needed. Every shipment has a public tracking URL that anyone can open in a browser — on phone or desktop. Just share the link on WhatsApp and they're done.</div>
+            </div>
         </div>
     </div>
+</section>
 
-    <script>
-        // ============================================================
-        // SUPABASE
-        // ============================================================
-        const SUPABASE_URL = 'https://cptzvucszoaolehariwu.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_JRUmY_u6soJB11pkWipNEg_HKkRZ0jh';
-        window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<!-- ── CTA ── -->
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-inner">
+            <h2>Ready to modernize your<br>courier business?</h2>
+            <p>Join courier businesses already using CourierMitra. Start free — upgrade only when you're ready.</p>
+            <div class="cta-btns">
+                <a href="signup.html" class="btn-cta-primary">Create free account</a>
+                <a href="client-admin.html" class="btn-cta-ghost">Sign in</a>
+            </div>
+            <p class="cta-note">14-day free trial · No credit card · Cancel anytime</p>
+        </div>
+    </div>
+</section>
 
-        // ============================================================
-        // STATE
-        // ============================================================
-        let allClients = [];
-        let allShipments = [];
+<!-- ── FOOTER ── -->
+<footer class="footer">
+    <div class="footer-inner">
+        <div class="footer-brand">📦 CourierMitra</div>
+        <ul class="footer-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="signup.html">Sign up</a></li>
+            <li><a href="client-admin.html">Sign in</a></li>
+            <li><a href="mailto:support@couriermitra.com">Contact</a></li>
+        </ul>
+        <div class="footer-copy">© 2026 CourierMitra</div>
+    </div>
+</footer>
 
-        // ============================================================
-        // INIT
-        // ============================================================
-        window.addEventListener('DOMContentLoaded', async () => {
-            const { data: { user }, error } = await window.supabaseClient.auth.getUser();
-            if (error || !user) { window.location.href = 'login.html'; return; }
+<script>
+    function toggleFaq(btn) {
+        const item = btn.closest('.faq-item');
+        const isOpen = item.classList.contains('open');
+        // Close all
+        document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+        // Open clicked if it was closed
+        if (!isOpen) item.classList.add('open');
+    }
+</script>
 
-            document.getElementById('userEmail').textContent = user.email;
-            document.getElementById('loadingScreen').style.display = 'none';
-
-            await Promise.all([loadClients(), loadShipments()]);
-        });
-
-        // ============================================================
-        // TABS
-        // ============================================================
-        function switchTab(tab, btn) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById('tab-' + tab).classList.add('active');
-        }
-
-        // ============================================================
-        // LOAD CLIENTS
-        // ============================================================
-        async function loadClients() {
-            const { data, error } = await window.supabaseClient
-                .from('clients')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) { console.error('Clients load error:', error); return; }
-            allClients = data || [];
-            renderClients(allClients);
-            updateStats();
-        }
-
-        function renderClients(clients) {
-            const tbody = document.getElementById('clientsTable');
-            const empty = document.getElementById('clientsEmpty');
-
-            if (!clients.length) {
-                tbody.innerHTML = '';
-                empty.style.display = 'block';
-                return;
-            }
-            empty.style.display = 'none';
-
-            tbody.innerHTML = clients.map(c => {
-                const initial = (c.company_name || c.email || 'C')[0].toUpperCase();
-                const statusBadge = getStatusBadge(c.subscription_status, c.is_active);
-                const planTag = getPlanTag(c.plan);
-                const shipmentCount = allShipments.filter(s => s.client_id === c.id).length;
-                const joined = c.created_at ? new Date(c.created_at).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) : '—';
-                const isSuspended = !c.is_active;
-
-                return `<tr>
-                    <td>
-                        <div class="client-name-cell">
-                            <div class="client-avatar">${escHtml(initial)}</div>
-                            <div>
-                                <div class="name">${escHtml(c.company_name || '—')}</div>
-                                <div class="email">${escHtml(c.email || '')}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td>${planTag}</td>
-                    <td>${statusBadge}</td>
-                    <td>${shipmentCount}</td>
-                    <td>${joined}</td>
-                    <td>
-                        <div class="action-btns">
-                            <button class="btn-icon btn-view" onclick="viewClient('${c.id}')" title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn-icon btn-edit" onclick="changePlan('${c.id}')" title="Change Plan">
-                                <i class="fas fa-tag"></i>
-                            </button>
-                            ${isSuspended
-                                ? `<button class="btn-icon btn-activate" onclick="toggleClient('${c.id}', true)" title="Activate">
-                                       <i class="fas fa-check"></i>
-                                   </button>`
-                                : `<button class="btn-icon btn-suspend" onclick="toggleClient('${c.id}', false)" title="Suspend">
-                                       <i class="fas fa-ban"></i>
-                                   </button>`
-                            }
-                        </div>
-                    </td>
-                </tr>`;
-            }).join('');
-        }
-
-        function filterClients() {
-            const search = document.getElementById('clientSearch').value.toLowerCase();
-            const status = document.getElementById('clientStatusFilter').value.toLowerCase();
-            const plan   = document.getElementById('clientPlanFilter').value.toLowerCase();
-
-            const filtered = allClients.filter(c => {
-                const matchSearch = !search ||
-                    (c.company_name || '').toLowerCase().includes(search) ||
-                    (c.email || '').toLowerCase().includes(search);
-                const matchStatus = !status || getStatusKey(c.subscription_status, c.is_active) === status;
-                const matchPlan   = !plan   || (c.plan || '').toLowerCase() === plan;
-                return matchSearch && matchStatus && matchPlan;
-            });
-            renderClients(filtered);
-        }
-
-        // ============================================================
-        // LOAD SHIPMENTS
-        // ============================================================
-        async function loadShipments() {
-            const { data, error } = await window.supabaseClient
-                .from('shipments')
-                .select('*, clients(company_name)')
-                .order('created_at', { ascending: false });
-
-            if (error) { console.error('Shipments load error:', error); return; }
-            allShipments = data || [];
-            renderShipments(allShipments);
-            updateStats();
-        }
-
-        function renderShipments(shipments) {
-            const tbody = document.getElementById('shipmentsTable');
-            const empty = document.getElementById('shipmentsEmpty');
-
-            if (!shipments.length) {
-                tbody.innerHTML = '';
-                empty.style.display = 'block';
-                return;
-            }
-            empty.style.display = 'none';
-
-            tbody.innerHTML = shipments.map(s => {
-                const clientName = s.clients ? escHtml(s.clients.company_name || '—') : '—';
-                const date = s.booking_date ? new Date(s.booking_date).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) : '—';
-                return `<tr>
-                    <td><strong>${escHtml(s.awb_no || '—')}</strong></td>
-                    <td>${clientName}</td>
-                    <td>${escHtml(s.consignee_name || '—')}</td>
-                    <td>${escHtml(s.consignee_city ? s.consignee_city + (s.consignee_country ? ', ' + s.consignee_country : '') : '—')}</td>
-                    <td>${getShipmentBadge(s.status)}</td>
-                    <td>${date}</td>
-                </tr>`;
-            }).join('');
-        }
-
-        function filterShipments() {
-            const search = document.getElementById('shipmentSearch').value.toLowerCase();
-            const status = document.getElementById('shipmentStatusFilter').value;
-
-            const filtered = allShipments.filter(s => {
-                const matchSearch = !search ||
-                    (s.awb_no || '').toLowerCase().includes(search) ||
-                    (s.consignee_name || '').toLowerCase().includes(search) ||
-                    (s.consignee_city || '').toLowerCase().includes(search) ||
-                    (s.consignee_country || '').toLowerCase().includes(search);
-                const matchStatus = !status || s.status === status;
-                return matchSearch && matchStatus;
-            });
-            renderShipments(filtered);
-        }
-
-        // ============================================================
-        // STATS
-        // ============================================================
-        function updateStats() {
-            document.getElementById('statTotalClients').textContent = allClients.length;
-            document.getElementById('statActiveClients').textContent = allClients.filter(c => c.is_active).length;
-            document.getElementById('statTotalShipments').textContent = allShipments.length;
-            document.getElementById('statTrialClients').textContent = allClients.filter(c =>
-                (c.subscription_status || '').toLowerCase() === 'trial' ||
-                (c.subscription_status || '').toLowerCase() === 'pending'
-            ).length;
-        }
-
-        // ============================================================
-        // CLIENT ACTIONS
-        // ============================================================
-        function viewClient(id) {
-            const c = allClients.find(x => x.id === id);
-            if (!c) return;
-
-            const shipmentCount = allShipments.filter(s => s.client_id === id).length;
-            const joined = c.created_at ? new Date(c.created_at).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) : '—';
-
-            document.getElementById('modalTitle').textContent = c.company_name || c.email;
-            document.getElementById('modalBody').innerHTML = `
-                <div class="detail-row"><span class="detail-label">Company</span><span class="detail-value">${escHtml(c.company_name || '—')}</span></div>
-                <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">${escHtml(c.email || '—')}</span></div>
-                <div class="detail-row"><span class="detail-label">Phone</span><span class="detail-value">${escHtml(c.phone || '—')}</span></div>
-                <div class="detail-row"><span class="detail-label">Address</span><span class="detail-value">${escHtml(c.address || '—')}</span></div>
-                <div class="detail-row"><span class="detail-label">AWB Prefix</span><span class="detail-value">${escHtml(c.awb_prefix || '—')}</span></div>
-                <div class="detail-row"><span class="detail-label">Plan</span><span class="detail-value">${getPlanTag(c.plan)}</span></div>
-                <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value">${getStatusBadge(c.subscription_status, c.is_active)}</span></div>
-                <div class="detail-row"><span class="detail-label">Shipments</span><span class="detail-value">${shipmentCount}</span></div>
-                <div class="detail-row"><span class="detail-label">Joined</span><span class="detail-value">${joined}</span></div>
-            `;
-            document.getElementById('modalActions').innerHTML = `
-                <button class="btn-secondary" onclick="closeClientModal()">Close</button>
-                ${c.is_active
-                    ? `<button class="btn-danger" onclick="toggleClient('${id}', false); closeClientModal()">Suspend Account</button>`
-                    : `<button class="btn-success" onclick="toggleClient('${id}', true); closeClientModal()">Activate Account</button>`
-                }
-            `;
-            document.getElementById('clientModal').style.display = 'flex';
-        }
-
-        function changePlan(id) {
-            const c = allClients.find(x => x.id === id);
-            if (!c) return;
-
-            document.getElementById('modalTitle').textContent = 'Change Plan — ' + (c.company_name || c.email);
-            document.getElementById('modalBody').innerHTML = `
-                <div class="detail-row"><span class="detail-label">Company</span><span class="detail-value">${escHtml(c.company_name || '—')}</span></div>
-                <div class="detail-row"><span class="detail-label">Current Plan</span><span class="detail-value">${getPlanTag(c.plan)}</span></div>
-                <div class="detail-row">
-                    <span class="detail-label">New Plan</span>
-                    <select class="modal-select" id="newPlanSelect" style="width:auto;">
-                        <option value="free" ${c.plan==='free'?'selected':''}>Free</option>
-                        <option value="starter" ${c.plan==='starter'?'selected':''}>Starter — ₹999/mo</option>
-                        <option value="growth" ${c.plan==='growth'?'selected':''}>Growth — ₹2,499/mo</option>
-                        <option value="pro" ${c.plan==='pro'?'selected':''}>Pro — ₹4,999/mo</option>
-                    </select>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">New Status</span>
-                    <select class="modal-select" id="newStatusSelect" style="width:auto;">
-                        <option value="trial" ${(c.subscription_status||'')==='trial'?'selected':''}>Trial</option>
-                        <option value="active" ${(c.subscription_status||'')==='active'?'selected':''}>Active</option>
-                        <option value="inactive" ${(c.subscription_status||'')==='inactive'?'selected':''}>Inactive</option>
-                        <option value="suspended" ${(c.subscription_status||'')==='suspended'?'selected':''}>Suspended</option>
-                        <option value="pending" ${(c.subscription_status||'')==='pending'?'selected':''}>Pending</option>
-                    </select>
-                </div>
-            `;
-            document.getElementById('modalActions').innerHTML = `
-                <button class="btn-secondary" onclick="closeClientModal()">Cancel</button>
-                <button class="btn-success" onclick="savePlanChange('${id}')">Save Changes</button>
-            `;
-            document.getElementById('clientModal').style.display = 'flex';
-        }
-
-        async function savePlanChange(id) {
-            const plan   = document.getElementById('newPlanSelect').value;
-            const status = document.getElementById('newStatusSelect').value;
-
-            const { error } = await window.supabaseClient
-                .from('clients')
-                .update({ plan, subscription_status: status })
-                .eq('id', id);
-
-            if (error) { alert('Error saving: ' + error.message); return; }
-
-            // Update local state
-            const idx = allClients.findIndex(x => x.id === id);
-            if (idx !== -1) { allClients[idx].plan = plan; allClients[idx].subscription_status = status; }
-
-            closeClientModal();
-            filterClients();
-            updateStats();
-        }
-
-        async function toggleClient(id, activate) {
-            const action = activate ? 'activate' : 'suspend';
-            if (!confirm(`Are you sure you want to ${action} this account?`)) return;
-
-            const { error } = await window.supabaseClient
-                .from('clients')
-                .update({ is_active: activate })
-                .eq('id', id);
-
-            if (error) { alert('Error: ' + error.message); return; }
-
-            const idx = allClients.findIndex(x => x.id === id);
-            if (idx !== -1) allClients[idx].is_active = activate;
-
-            filterClients();
-            updateStats();
-        }
-
-        function closeClientModal() {
-            document.getElementById('clientModal').style.display = 'none';
-        }
-
-        function closeModalOnOverlay(e) {
-            if (e.target === document.getElementById('clientModal')) closeClientModal();
-        }
-
-        // ============================================================
-        // LOGOUT
-        // ============================================================
-        async function handleLogout() {
-            if (!confirm('Are you sure you want to logout?')) return;
-            const btn = document.getElementById('logoutBtn');
-            btn.textContent = 'Logging out...'; btn.disabled = true;
-            await window.supabaseClient.auth.signOut();
-            window.location.href = 'login.html';
-        }
-
-        // ============================================================
-        // HELPERS
-        // ============================================================
-        function escHtml(str) {
-            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-        }
-
-        function getStatusKey(subscription_status, is_active) {
-            if (!is_active) return 'suspended';
-            const s = (subscription_status || '').toLowerCase();
-            return s || 'pending';
-        }
-
-        function getStatusBadge(subscription_status, is_active) {
-            const key = getStatusKey(subscription_status, is_active);
-            const labels = { active:'Active', trial:'Trial', suspended:'Suspended', inactive:'Inactive', pending:'Pending' };
-            const cls    = { active:'badge-active', trial:'badge-trial', suspended:'badge-suspended', inactive:'badge-inactive', pending:'badge-pending' };
-            return `<span class="badge ${cls[key] || 'badge-pending'}">${labels[key] || key}</span>`;
-        }
-
-        function getPlanTag(plan) {
-            const p = (plan || 'free').toLowerCase();
-            const labels = { free:'Free', starter:'Starter', growth:'Growth', pro:'Pro' };
-            return `<span class="plan-tag plan-${p}">${labels[p] || p}</span>`;
-        }
-
-        function getShipmentBadge(status) {
-            const map = {
-                'Delivered':       'badge-delivered',
-                'In Transit':      'badge-transit',
-                'Out for Delivery':'badge-transit',
-                'Booked':          'badge-booked',
-                'Picked Up':       'badge-pickup',
-                'On Hold':         'badge-hold',
-            };
-            const cls = map[status] || 'badge-booked';
-            return `<span class="badge ${cls}">${escHtml(status || '—')}</span>`;
-        }
-    </script>
 </body>
 </html>

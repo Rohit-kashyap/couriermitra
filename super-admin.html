@@ -551,15 +551,6 @@
                 return;
             }
 
-            // Sign in to Supabase silently for data access (RLS requires authenticated user)
-            const { data: { session } } = await window.supabaseClient.auth.getSession();
-            if (!session) {
-                await window.supabaseClient.auth.signInWithPassword({
-                    email: 'designer.rohitkashyap@gmail.com',
-                    password: 'kashyap1!'
-                });
-            }
-
             document.getElementById('userEmail').textContent = 'designer.rohitkashyap@gmail.com';
             document.getElementById('loadingScreen').style.display = 'none';
 

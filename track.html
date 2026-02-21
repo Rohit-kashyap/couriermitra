@@ -487,19 +487,8 @@
                     // Fetch shipment details with client info
                     const { data: shipmentData, error: shipmentError } = await supabase
                         .from('shipments')
-                        .select(`
-                            *,
-                            clients (
-                                company_name,
-                                logo_url,
-                                primary_color
-                            ),
-                            carriers (
-                                carrier_name
-                            )
-                        `)
+                        .select(`*, clients (company_name, logo_url, primary_color)`)
                         .eq('awb_no', awbNumber)
-                        .eq('is_active', true)
                         .single();
 
                     console.log('Shipment data:', shipmentData);
@@ -565,7 +554,7 @@
 
                 // Company info
                 const companyName = shipment.clients?.company_name || 'CourierMitra';
-                const carrierName = shipment.carriers?.carrier_name || 'N/A';
+                const carrierName = shipment.carrier_name || 'N/A';
 
                 let html = `
                     <div class="shipment-card">

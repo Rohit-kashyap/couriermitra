@@ -1,0 +1,2389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CourierMitra - Client Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            font-size: 14px;
+            color: #1a1a2e;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ── LOGIN ── */
+        .login-screen {
+            display: flex; align-items: center; justify-content: center;
+            min-height: 100vh; width: 100%;
+            background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+        }
+        .login-box {
+            background: white; border-radius: 16px; padding: 48px;
+            width: 100%; max-width: 420px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .login-logo { text-align: center; margin-bottom: 36px; }
+        .login-logo h1 { font-size: 28px; font-weight: 800; color: #1e3a5f; margin-bottom: 6px; }
+        .login-logo p { color: #6b7280; font-size: 14px; }
+        .login-field { margin-bottom: 18px; }
+        .login-field label { display: block; font-weight: 600; color: #374151; margin-bottom: 6px; font-size: 13px; }
+        .login-field input {
+            width: 100%; padding: 11px 14px;
+            border: 1.5px solid #e5e7eb; border-radius: 8px;
+            font-size: 14px; transition: border-color 0.2s;
+        }
+        .login-field input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .login-error {
+            background: #fee2e2; color: #991b1b; padding: 10px 14px;
+            border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none;
+        }
+        .login-btn {
+            width: 100%; padding: 13px; background: #2563eb; color: white;
+            border: none; border-radius: 8px; font-size: 15px; font-weight: 600;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .login-btn:hover { background: #1d4ed8; }
+        .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .login-signup-link {
+            text-align: center; margin-top: 20px;
+            font-size: 13px; color: #6b7280;
+        }
+        .login-signup-link a {
+            color: #2563eb; font-weight: 600; text-decoration: none;
+        }
+        .login-signup-link a:hover { text-decoration: underline; }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: 220px; min-width: 220px; height: 100vh;
+            background: white; border-right: 1px solid #e5e7eb;
+            display: flex; flex-direction: column;
+            position: sticky; top: 0;
+            flex-shrink: 0;
+        }
+        .sidebar-logo {
+            padding: 20px; display: flex; align-items: center; gap: 10px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .logo-icon { font-size: 22px; }
+        .logo-text { font-size: 16px; font-weight: 800; color: #0f172a; }
+        .sidebar-nav { flex: 1; padding: 12px 8px; display: flex; flex-direction: column; gap: 2px; }
+        .nav-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: 8px; cursor: pointer;
+            font-size: 14px; font-weight: 500; color: #6b7280;
+            border: none; background: none; text-align: left; width: 100%;
+            transition: all 0.15s; text-decoration: none;
+        }
+        .nav-item:hover { background: #f9fafb; color: #374151; }
+        .nav-item.active { background: #eff6ff; color: #2563eb; font-weight: 600; }
+        .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+        .sidebar-footer {
+            padding: 16px; border-top: 1px solid #f3f4f6;
+        }
+        .sidebar-company { font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sidebar-logout {
+            width: 100%; padding: 8px; background: #f9fafb; color: #6b7280;
+            border: 1px solid #e5e7eb; border-radius: 6px; font-size: 12px;
+            cursor: pointer; font-weight: 500;
+        }
+        .sidebar-logout:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+        .sidebar-plan-badge {
+            display: flex; align-items: center; justify-content: space-between;
+            background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 7px;
+            padding: 7px 10px; margin-bottom: 8px; font-size: 12px;
+        }
+        .sidebar-plan-badge .plan-name { font-weight: 700; color: #374151; }
+        .sidebar-plan-badge .plan-tag {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            padding: 2px 7px; border-radius: 10px; letter-spacing: 0.4px;
+        }
+        .plan-tag.free  { background: #fef3c7; color: #92400e; }
+        .plan-tag.paid  { background: #d1fae5; color: #065f46; }
+        .sidebar-upgrade {
+            width: 100%; padding: 8px; margin-bottom: 8px;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white; border: none; border-radius: 6px;
+            font-size: 12px; font-weight: 700; cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .sidebar-upgrade:hover { opacity: 0.88; }
+
+        /* ── UPGRADE MODAL ── */
+        .upgrade-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5); z-index: 300;
+            align-items: center; justify-content: center; padding: 20px;
+        }
+        .upgrade-overlay.active { display: flex; }
+        .upgrade-modal {
+            background: white; border-radius: 16px;
+            width: 100%; max-width: 640px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+            overflow: hidden;
+            animation: modalIn 0.2s ease;
+        }
+        .upgrade-modal-header {
+            padding: 20px 24px; border-bottom: 1px solid #f3f4f6;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .upgrade-modal-header h2 { font-size: 17px; font-weight: 700; color: #0f172a; }
+        .upgrade-modal-body { padding: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .up-card {
+            border: 1.5px solid #e5e7eb; border-radius: 12px;
+            padding: 22px 20px; display: flex; flex-direction: column;
+            position: relative;
+        }
+        .up-card.current { background: #f9fafb; }
+        .up-card.upgrade { border-color: #2563eb; box-shadow: 0 0 0 1px #2563eb; }
+        .up-current-tag {
+            position: absolute; top: -10px; left: 16px;
+            background: #e5e7eb; color: #374151;
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            padding: 2px 10px; border-radius: 10px; letter-spacing: 0.4px;
+        }
+        .up-recommended-tag {
+            position: absolute; top: -10px; left: 16px;
+            background: #2563eb; color: white;
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            padding: 2px 10px; border-radius: 10px; letter-spacing: 0.4px;
+        }
+        .up-plan-name { font-size: 18px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+        .up-plan-price { font-size: 28px; font-weight: 800; color: #0f172a; line-height: 1; margin-bottom: 2px; }
+        .up-plan-price span { font-size: 14px; font-weight: 500; color: #6b7280; }
+        .up-plan-note { font-size: 11px; color: #9ca3af; margin-bottom: 16px; }
+        .up-features { list-style: none; flex: 1; margin-bottom: 18px; }
+        .up-features li { font-size: 13px; color: #374151; padding: 4px 0; display: flex; gap: 8px; }
+        .up-features li.na { color: #9ca3af; }
+        .btn-up-current {
+            width: 100%; padding: 10px; border-radius: 8px;
+            font-size: 13px; font-weight: 600; border: 1.5px solid #e5e7eb;
+            background: white; color: #9ca3af; cursor: default;
+        }
+        .btn-up-upgrade {
+            width: 100%; padding: 10px; border-radius: 8px;
+            font-size: 13px; font-weight: 700; border: none;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white; cursor: pointer; transition: opacity 0.2s;
+        }
+        .btn-up-upgrade:hover { opacity: 0.88; }
+
+        /* ── DASHBOARD WRAPPER ── */
+        #dashboardScreen {
+            flex-direction: row; width: 100%;
+        }
+
+        /* ── MAIN AREA ── */
+        .main-area {
+            flex: 1; overflow-y: auto; background: #f8fafc;
+        }
+        .page { display: none; padding: 28px 32px; }
+        .page.active { display: block; }
+        .page-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 24px;
+        }
+        .page-title { font-size: 22px; font-weight: 700; color: #0f172a; }
+        .page-sub { font-size: 13px; color: #9ca3af; margin-top: 2px; }
+        .content-card {
+            background: white; border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow: hidden;
+        }
+        .content-card-header {
+            padding: 16px 20px; border-bottom: 1px solid #f3f4f6;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .content-card-header h3 { font-size: 15px; font-weight: 700; color: #1a1a2e; display: flex; align-items: center; gap: 8px; }
+        .content-card-body { padding: 20px; }
+
+        /* ── STAT CARDS ── */
+        .stat-cards {
+            display: grid; grid-template-columns: repeat(5, 1fr);
+            gap: 14px; margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white; border-radius: 10px; padding: 18px 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .stat-label { font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .stat-num { font-size: 32px; font-weight: 800; color: #0f172a; line-height: 1; }
+        .stat-num-sm { font-size: 22px; }
+        .stat-sub { font-size: 12px; color: #6b7280; margin-top: 4px; }
+
+        /* ── SECTION CARD (for settings/invoices/customers) ── */
+        .card {
+            background: white; border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            margin-bottom: 20px; overflow: hidden;
+        }
+        .card-header {
+            padding: 14px 20px; border-bottom: 1px solid #f3f4f6;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .card-header h3 { font-size: 15px; font-weight: 700; color: #1a1a2e; display: flex; align-items: center; gap: 8px; }
+        .card-body { padding: 20px; }
+
+        /* ── SECTION DIVIDER ── */
+        .section-block {
+            border: 1px solid #e5e7eb; border-radius: 8px;
+            margin-bottom: 12px; overflow: hidden;
+        }
+        .section-block.blue   { border-left: 4px solid #3b82f6; }
+        .section-block.green  { border-left: 4px solid #10b981; }
+        .section-block.orange { border-left: 4px solid #f59e0b; }
+        .section-block.purple { border-left: 4px solid #8b5cf6; }
+        .section-block.teal   { border-left: 4px solid #14b8a6; }
+        .section-title {
+            padding: 8px 14px; background: #f9fafb;
+            font-size: 12px; font-weight: 700; color: #374151;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .section-body { padding: 12px 14px; }
+
+        /* ── FORM ELEMENTS ── */
+        .form-grid { display: grid; gap: 10px; }
+        .cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .cols-3 { grid-template-columns: repeat(3, 1fr); }
+        .cols-4 { grid-template-columns: repeat(4, 1fr); }
+        .cols-6 { grid-template-columns: repeat(6, 1fr); }
+        .col-span-2 { grid-column: span 2; }
+        .col-span-3 { grid-column: span 3; }
+        .col-span-4 { grid-column: span 4; }
+        .col-span-6 { grid-column: span 6; }
+
+        .form-field { display: flex; flex-direction: column; gap: 4px; }
+        .form-field label {
+            font-size: 12px; font-weight: 600; color: #6b7280;
+            text-transform: uppercase; letter-spacing: 0.4px;
+        }
+        .form-field label .req { color: #ef4444; }
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
+            padding: 7px 10px; border: 1.5px solid #e5e7eb;
+            border-radius: 6px; font-size: 13px; color: #1a1a2e;
+            transition: border-color 0.2s; background: white;
+            font-family: inherit;
+        }
+        .form-field input:focus,
+        .form-field select:focus,
+        .form-field textarea:focus {
+            outline: none; border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+        }
+        .form-field input[readonly] { background: #f9fafb; color: #6b7280; }
+
+        /* ── BUTTONS ── */
+        .btn {
+            padding: 9px 18px; border: none; border-radius: 7px;
+            font-size: 13px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-success { background: #059669; color: white; }
+        .btn-success:hover { background: #047857; }
+        .btn-danger  { background: #dc2626; color: white; }
+        .btn-danger:hover  { background: #b91c1c; }
+        .btn-secondary { background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
+        .btn-secondary:hover { background: #e5e7eb; }
+        .btn-teal { background: #0d9488; color: white; }
+        .btn-teal:hover { background: #0f766e; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .btn-icon { width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; }
+
+        /* ── PACKAGE TABLE ── */
+        .pkg-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .pkg-table th {
+            background: #1e3a5f; color: white; padding: 8px 10px;
+            text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase;
+        }
+        .pkg-table td { padding: 6px 8px; border-bottom: 1px solid #f3f4f6; }
+        .pkg-table td input {
+            width: 100%; padding: 5px 8px; border: 1px solid #e5e7eb;
+            border-radius: 4px; font-size: 13px; background: white;
+        }
+        .pkg-table td input[readonly] { background: #f0fdf4; color: #059669; font-weight: 600; }
+        .pkg-table .total-row { background: #1e3a5f; color: white; font-weight: 700; }
+        .pkg-table .total-row td { padding: 8px 10px; }
+
+        /* ── BILLING CALC ── */
+        .billing-auto {
+            background: #f0fdf4; border: 1px solid #bbf7d0;
+            border-radius: 6px; padding: 8px 12px;
+            font-size: 13px; color: #059669; font-weight: 600;
+        }
+
+        /* ── SHIPMENTS LIST TABLE ── */
+        .list-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .list-table th {
+            padding: 10px 12px; text-align: left;
+            font-size: 11px; font-weight: 700; color: #9ca3af;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            border-bottom: 2px solid #f3f4f6;
+        }
+        .list-table td { padding: 11px 12px; border-bottom: 1px solid #f9fafb; color: #374151; }
+        .list-table tbody tr:hover { background: #fafafa; }
+        .list-table tbody tr:last-child td { border-bottom: none; }
+        .list-table .awb-link { color: #2563eb; font-weight: 600; cursor: pointer; text-decoration: underline; }
+
+        /* ── FILTERS BAR ── */
+        .filters-bar {
+            display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;
+            margin-bottom: 16px;
+        }
+        .filters-bar .form-field { min-width: 160px; }
+        .filters-bar .form-field.search-field { flex: 1; min-width: 220px; }
+
+        /* ── STATUS BADGES ── */
+        .badge {
+            display: inline-block; padding: 3px 10px; border-radius: 12px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;
+        }
+        .badge-delivered    { background: #d1fae5; color: #065f46; }
+        .badge-transit      { background: #dbeafe; color: #1e40af; }
+        .badge-booked       { background: #fef3c7; color: #92400e; }
+        .badge-pickup       { background: #ede9fe; color: #5b21b6; }
+        .badge-outdelivery  { background: #cffafe; color: #155e75; }
+        .badge-hold         { background: #f3f4f6; color: #374151; }
+        .badge-cancelled    { background: #fee2e2; color: #991b1b; }
+        .badge-received     { background: #e0f2fe; color: #075985; }
+        .badge-active       { background: #d1fae5; color: #065f46; }
+        .badge-inactive     { background: #f3f4f6; color: #6b7280; }
+        .badge-generated    { background: #fef3c7; color: #92400e; }
+        .badge-paid         { background: #d1fae5; color: #065f46; }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed; bottom: 28px; right: 28px;
+            background: #1e3a5f; color: white;
+            padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            z-index: 9999; opacity: 0; transform: translateY(8px);
+            transition: opacity 0.3s, transform 0.3s; pointer-events: none;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+
+        /* ── MODAL ── */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000;
+            align-items: center; justify-content: center; overflow-y: auto;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: white; border-radius: 12px; padding: 28px;
+            width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto;
+            margin: 20px;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { font-size: 17px; font-weight: 700; }
+        .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: #9ca3af; }
+        .modal-close:hover { color: #374151; }
+        .modal-footer { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+
+        /* ── EMPTY STATE ── */
+        .empty-state { text-align: center; padding: 48px 20px; color: #9ca3af; }
+        .empty-state .icon { font-size: 44px; margin-bottom: 12px; opacity: 0.4; }
+        .empty-state p { font-size: 14px; }
+
+        /* ── VIEW SHIPMENT MODAL SPECIFICS ── */
+        .view-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .view-item label { display: block; font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+        .view-item span { font-size: 14px; color: #111827; font-weight: 500; }
+        .view-section-title {
+            font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;
+            letter-spacing: 0.5px; padding: 10px 0 8px; border-bottom: 1px solid #f3f4f6; margin-bottom: 12px;
+        }
+        .tracking-url-row {
+            display: flex; align-items: center; gap: 10px;
+            background: #f9fafb; border: 1px solid #e5e7eb;
+            border-radius: 7px; padding: 10px 14px; margin-bottom: 16px;
+        }
+        .tracking-url-row span { flex: 1; font-size: 12px; color: #374151; word-break: break-all; }
+        .copy-btn {
+            padding: 5px 12px; background: #2563eb; color: white; border: none;
+            border-radius: 5px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
+        }
+        .copy-btn.copied { background: #059669; }
+        .tracking-event {
+            display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f9fafb;
+        }
+        .tracking-event:last-child { border-bottom: none; }
+        .tracking-dot {
+            width: 10px; height: 10px; border-radius: 50%; background: #2563eb;
+            flex-shrink: 0; margin-top: 4px;
+        }
+        .tracking-event-status { font-size: 13px; font-weight: 600; color: #111827; }
+        .tracking-event-desc   { font-size: 12px; color: #6b7280; }
+        .tracking-event-time   { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+
+        /* ── SHIPMENT MODAL ── */
+        .drawer-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5); z-index: 200;
+            align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        .drawer-overlay.active { display: flex; }
+        .drawer-panel {
+            width: 90vw; max-width: 90vw;
+            height: 90vh;
+            background: white; border-radius: 14px;
+            display: flex; flex-direction: column;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+            overflow: hidden;
+            animation: modalIn 0.2s ease;
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.97); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+        .drawer-header {
+            padding: 16px 24px; border-bottom: 1px solid #e5e7eb;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-shrink: 0;
+            background: white;
+        }
+        .drawer-header h2 { font-size: 17px; font-weight: 700; color: #0f172a; }
+        .drawer-close {
+            background: none; border: none; font-size: 20px;
+            cursor: pointer; color: #6b7280; padding: 6px 10px;
+            border-radius: 6px; line-height: 1;
+        }
+        .drawer-close:hover { background: #f3f4f6; color: #374151; }
+        .drawer-body {
+            flex: 1; overflow-y: auto; padding: 20px 24px;
+        }
+        .drawer-footer {
+            padding: 14px 24px; border-top: 1px solid #e5e7eb;
+            display: flex; gap: 10px; flex-shrink: 0;
+            background: white;
+        }
+
+        /* ── INVOICE PRINT AREA ── */
+        @media print {
+            body > *:not(#printArea) { display: none !important; }
+            #printArea { display: block !important; }
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 900px) {
+            .cols-4, .cols-6 { grid-template-columns: repeat(2, 1fr); }
+            .cols-3 { grid-template-columns: repeat(2, 1fr); }
+            .col-span-4, .col-span-6 { grid-column: span 2; }
+            .stat-cards { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .cols-2, .cols-3, .cols-4, .cols-6 { grid-template-columns: 1fr; }
+            .col-span-2, .col-span-3, .col-span-4, .col-span-6 { grid-column: span 1; }
+            .page { padding: 12px; }
+            .stat-cards { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="login-screen">
+    <div class="login-box">
+        <div class="login-logo">
+            <h1>📦 CourierMitra</h1>
+            <p>Sign in to your dashboard</p>
+        </div>
+        <form onsubmit="window.handleLogin(event)">
+            <div class="login-field">
+                <label>Email</label>
+                <input type="email" id="loginEmail" placeholder="you@company.com" required>
+            </div>
+            <div class="login-field">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="••••••••" required>
+            </div>
+            <div class="login-error" id="loginError"></div>
+            <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
+        </form>
+        <div class="login-signup-link">
+            Don't have an account? <a href="signup.html">Create one here</a>
+        </div>
+    </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboardScreen" style="display:none; flex:1; min-height:100vh; overflow:hidden;">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <span class="logo-icon">📦</span>
+            <span class="logo-text">CourierMitra</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="nav-item active" onclick="switchTab('shipments',this)">
+                <span class="nav-icon">📦</span><span>Shipments</span>
+            </a>
+            <a class="nav-item" onclick="switchTab('invoices',this)">
+                <span class="nav-icon">🧾</span><span>Invoices</span>
+            </a>
+            <a class="nav-item" onclick="switchTab('customers',this)">
+                <span class="nav-icon">👥</span><span>Customers</span>
+            </a>
+            <a class="nav-item" onclick="switchTab('settings',this)">
+                <span class="nav-icon">⚙️</span><span>Settings</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="sidebar-company" id="navCompanyName">Company</div>
+            <div class="sidebar-plan-badge">
+                <span class="plan-name" id="navPlanName">Free Trial</span>
+                <span class="plan-tag free" id="navPlanTag">Free</span>
+            </div>
+            <button class="sidebar-upgrade" id="upgradeBtn" onclick="openUpgradeModal()">⚡ Upgrade Plan</button>
+            <button class="sidebar-logout" onclick="window.logoutClient()">Sign out</button>
+        </div>
+    </div>
+
+    <!-- MAIN AREA -->
+    <div class="main-area">
+
+        <!-- ══════════════════════════════════════════
+             SHIPMENTS PAGE
+        ══════════════════════════════════════════ -->
+        <div id="page-shipments" class="page active">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Shipments</h1>
+                    <p class="page-sub" id="navTotalShipments">0 shipments total</p>
+                </div>
+                <button class="btn btn-primary" onclick="openShipmentDrawer()">+ New Shipment</button>
+            </div>
+
+            <!-- Stat Cards -->
+            <div class="stat-cards">
+                <div class="stat-card" style="border-left:4px solid #6366f1;">
+                    <div class="stat-label">Total Shipments</div>
+                    <div class="stat-num" id="bentoTotal">—</div>
+                    <div class="stat-sub" id="bentoThisMonth">— this month</div>
+                </div>
+                <div class="stat-card" style="border-left:4px solid #10b981;">
+                    <div class="stat-label">Delivered</div>
+                    <div class="stat-num" id="bentoDelivered">—</div>
+                    <div class="stat-sub" id="bentoDeliveredPct">—</div>
+                </div>
+                <div class="stat-card" style="border-left:4px solid #3b82f6;">
+                    <div class="stat-label">In Transit</div>
+                    <div class="stat-num" id="bentoInTransit">—</div>
+                    <div class="stat-sub">Currently moving</div>
+                </div>
+                <div class="stat-card" style="border-left:4px solid #f59e0b;">
+                    <div class="stat-label">Pending</div>
+                    <div class="stat-num" id="bentoPending">—</div>
+                    <div class="stat-sub">Awaiting pickup</div>
+                </div>
+                <div class="stat-card" style="border-left:4px solid #8b5cf6;">
+                    <div class="stat-label">Revenue</div>
+                    <div class="stat-num stat-num-sm" id="bentoRevenue">₹—</div>
+                    <div class="stat-sub"><span id="bentoCustomers">—</span> customers</div>
+                </div>
+            </div>
+
+            <!-- Shipments Table Card -->
+            <div class="content-card">
+                <div class="content-card-header">
+                    <h3>📋 All Shipments</h3>
+                    <button class="btn btn-success btn-sm" onclick="exportShipmentsCSV()">⬇ Export Excel</button>
+                </div>
+                <div class="content-card-body">
+                    <div class="filters-bar">
+                        <div class="form-field search-field">
+                            <label>Search</label>
+                            <input type="text" id="searchShipments" placeholder="AWB, Name, Destination..." oninput="window.searchShipments()">
+                        </div>
+                        <div class="form-field">
+                            <label>Network</label>
+                            <select id="filterNetwork" onchange="window.searchShipments()">
+                                <option value="">All</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>Status</label>
+                            <select id="filterStatus" onchange="window.searchShipments()">
+                                <option value="">All</option>
+                                <option>Shipment Data Received</option>
+                                <option>Picked Up</option>
+                                <option>In Transit</option>
+                                <option>Out for Delivery</option>
+                                <option>Delivered</option>
+                                <option>On Hold</option>
+                                <option>Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>From Date</label>
+                            <input type="date" id="filterFromDate" onchange="window.searchShipments()">
+                        </div>
+                        <div class="form-field">
+                            <label>To Date</label>
+                            <input type="date" id="filterToDate" onchange="window.searchShipments()">
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="clearFilters()" style="align-self:flex-end;">Clear</button>
+                    </div>
+                    <div id="shipmentsListInfo" style="font-size:13px;color:#6b7280;margin-bottom:10px;"></div>
+                    <div style="overflow-x:auto;">
+                        <table class="list-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>AWB NO</th>
+                                    <th>DATE</th>
+                                    <th>SENDER</th>
+                                    <th>CONSIGNEE</th>
+                                    <th>DESTINATION</th>
+                                    <th>STATUS</th>
+                                    <th>NETWORK</th>
+                                    <th>PCS</th>
+                                    <th>WEIGHT</th>
+                                    <th>AMOUNT</th>
+                                    <th>ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="shipmentsTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="shipmentsEmptyState" class="empty-state" style="display:none;">
+                        <div class="icon">📦</div>
+                        <p>No shipments found. Click "+ New Shipment" to create your first shipment.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════
+             INVOICES PAGE
+        ══════════════════════════════════════════ -->
+        <div id="page-invoices" class="page">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Invoices</h1>
+                    <p class="page-sub">Generate and manage tax invoices</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h3>🧾 Generate Tax Invoice</h3></div>
+                <div class="card-body">
+                    <div class="section-block blue">
+                        <div class="section-title">🖨 Invoice Generation</div>
+                        <div class="section-body">
+                            <div class="form-grid cols-4">
+                                <div class="form-field col-span-2">
+                                    <label>Select Customer <span class="req">*</span></label>
+                                    <select id="invoiceCustomer">
+                                        <option value="">-- Select Customer --</option>
+                                    </select>
+                                </div>
+                                <div class="form-field">
+                                    <label>From Date <span class="req">*</span></label>
+                                    <input type="date" id="invoiceFromDate">
+                                </div>
+                                <div class="form-field">
+                                    <label>To Date <span class="req">*</span></label>
+                                    <input type="date" id="invoiceToDate">
+                                </div>
+                            </div>
+                            <div style="margin-top:16px;">
+                                <button class="btn btn-teal" onclick="generateInvoice()">🖨 Generate Invoice</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3>📋 Past Invoices</h3></div>
+                <div class="card-body">
+                    <div style="overflow-x:auto;">
+                        <table class="list-table">
+                            <thead>
+                                <tr>
+                                    <th>INVOICE NO</th>
+                                    <th>DATE</th>
+                                    <th>CUSTOMER</th>
+                                    <th>PERIOD</th>
+                                    <th>SHIPMENTS</th>
+                                    <th>GRAND TOTAL</th>
+                                    <th>STATUS</th>
+                                    <th>ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoicesTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="invoicesEmptyState" class="empty-state" style="display:none;">
+                        <div class="icon">🧾</div>
+                        <p>No invoices generated yet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════
+             CUSTOMERS PAGE
+        ══════════════════════════════════════════ -->
+        <div id="page-customers" class="page">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Customers</h1>
+                    <p class="page-sub">Manage your customer accounts</p>
+                </div>
+                <button class="btn btn-primary" onclick="openCustomerModal()">+ Add Customer</button>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>👥 Customer Management</h3>
+                </div>
+                <div class="card-body">
+                    <div style="overflow-x:auto;">
+                        <table class="list-table">
+                            <thead>
+                                <tr>
+                                    <th>A/C CODE</th>
+                                    <th>CUSTOMER NAME</th>
+                                    <th>CITY</th>
+                                    <th>STATE</th>
+                                    <th>GST NO</th>
+                                    <th>PHONE</th>
+                                    <th>STATUS</th>
+                                    <th>ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customersTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="customersEmptyState" class="empty-state" style="display:none;">
+                        <div class="icon">👥</div>
+                        <p>No customers yet. Add your first customer.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════
+             SETTINGS PAGE
+        ══════════════════════════════════════════ -->
+        <div id="page-settings" class="page">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Settings</h1>
+                    <p class="page-sub">Company configuration and preferences</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h3>⚙️ Company Settings</h3></div>
+                <div class="card-body">
+                    <form id="settingsForm" onsubmit="window.saveSettings(event)">
+
+                        <!-- Company Info -->
+                        <div class="section-block blue" style="margin-bottom:16px;">
+                            <div class="section-title">🏢 Company Information</div>
+                            <div class="section-body">
+                                <div class="form-grid cols-4" style="margin-bottom:12px;">
+                                    <div class="form-field col-span-2">
+                                        <label>Company Name</label>
+                                        <input type="text" id="settingsCompanyName" readonly>
+                                    </div>
+                                    <div class="form-field">
+                                        <label>Company Code</label>
+                                        <input type="text" id="settingsCompanyCode" placeholder="e.g. GI">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>Location Code</label>
+                                        <input type="text" id="settingsLocationCode" placeholder="e.g. DEL">
+                                    </div>
+                                </div>
+                                <div class="form-grid cols-4" style="margin-bottom:12px;">
+                                    <div class="form-field col-span-4">
+                                        <label>Address Line 1</label>
+                                        <input type="text" id="settingsAddress1" placeholder="Street address">
+                                    </div>
+                                </div>
+                                <div class="form-grid cols-4" style="margin-bottom:12px;">
+                                    <div class="form-field col-span-4">
+                                        <label>Address Line 2</label>
+                                        <input type="text" id="settingsAddress2" placeholder="Area, City, State, PIN">
+                                    </div>
+                                </div>
+                                <div class="form-grid cols-6">
+                                    <div class="form-field">
+                                        <label>Email</label>
+                                        <input type="email" id="settingsEmail" readonly>
+                                    </div>
+                                    <div class="form-field">
+                                        <label>Phone 1</label>
+                                        <input type="tel" id="settingsPhone1">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>Phone 2</label>
+                                        <input type="tel" id="settingsPhone2">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>Phone 3</label>
+                                        <input type="tel" id="settingsPhone3">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>GST Number</label>
+                                        <input type="text" id="settingsGstNumber" placeholder="e.g. 07BEUPR3521Q2ZL">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>Website</label>
+                                        <input type="text" id="settingsWebsite" placeholder="www.yourcompany.com">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>HSN/SAC Code</label>
+                                        <input type="text" id="settingsHsnSac" placeholder="996812">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>State</label>
+                                        <select id="settingsState">
+                                            <option value="">Select State</option>
+                                            <option>Andhra Pradesh</option><option>Arunachal Pradesh</option>
+                                            <option>Assam</option><option>Bihar</option><option>Chhattisgarh</option>
+                                            <option>Goa</option><option>Gujarat</option><option>Haryana</option>
+                                            <option>Himachal Pradesh</option><option>Jharkhand</option>
+                                            <option>Karnataka</option><option>Kerala</option>
+                                            <option>Madhya Pradesh</option><option>Maharashtra</option>
+                                            <option>Manipur</option><option>Meghalaya</option><option>Mizoram</option>
+                                            <option>Nagaland</option><option>Odisha</option><option>Punjab</option>
+                                            <option>Rajasthan</option><option>Sikkim</option>
+                                            <option>Tamil Nadu</option><option>Telangana</option>
+                                            <option>Tripura</option><option>Uttar Pradesh</option>
+                                            <option>Uttarakhand</option><option>West Bengal</option>
+                                            <option>Delhi</option><option>Jammu and Kashmir</option>
+                                            <option>Ladakh</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-field">
+                                        <label>Primary Color</label>
+                                        <input type="color" id="settingsPrimaryColor" value="#2563eb">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bank Details -->
+                        <div class="section-block green" style="margin-bottom:16px;">
+                            <div class="section-title">🏦 Bank Details</div>
+                            <div class="section-body">
+                                <div class="form-grid cols-4">
+                                    <div class="form-field">
+                                        <label>Bank Name</label>
+                                        <input type="text" id="settingsBankName" placeholder="e.g. HDFC Bank">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>Branch</label>
+                                        <input type="text" id="settingsBankBranch" placeholder="Branch name">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>Account Number</label>
+                                        <input type="text" id="settingsBankAccount" placeholder="Account number">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>IFSC Code</label>
+                                        <input type="text" id="settingsIfsc" placeholder="e.g. HDFC0004479">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- GST Rates -->
+                        <div class="section-block orange" style="margin-bottom:16px;">
+                            <div class="section-title">📊 GST Rates</div>
+                            <div class="section-body">
+                                <div class="form-grid cols-3">
+                                    <div class="form-field">
+                                        <label>CGST Rate (%)</label>
+                                        <input type="number" step="0.01" id="settingsCgst" placeholder="9">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>SGST Rate (%)</label>
+                                        <input type="number" step="0.01" id="settingsSgst" placeholder="9">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>IGST Rate (%)</label>
+                                        <input type="number" step="0.01" id="settingsIgst" placeholder="18">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">💾 Save Settings</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- end .main-area -->
+
+</div><!-- end dashboardScreen -->
+
+<!-- SHIPMENT MODAL -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="if(event.target===this)closeShipmentDrawer()">
+<div class="drawer-panel" id="shipmentDrawer">
+    <div class="drawer-header">
+        <h2 id="drawerTitle">New Shipment</h2>
+        <button class="drawer-close" onclick="closeShipmentDrawer()">&#x2715;</button>
+    </div>
+    <div class="drawer-body">
+        <form id="shipmentForm" onsubmit="window.saveShipment(event)">
+            <input type="hidden" id="editShipmentId">
+
+            <!-- 1. Shipment Details -->
+            <div class="section-block blue">
+                <div class="section-title">📋 Shipment Details</div>
+                <div class="section-body">
+                    <div class="form-grid cols-6">
+                        <div class="form-field">
+                            <label>AWB Number <span class="req">*</span></label>
+                            <input type="text" id="awbNo" readonly placeholder="Auto-generated">
+                        </div>
+                        <div class="form-field">
+                            <label>Booking Date <span class="req">*</span></label>
+                            <input type="date" id="bookingDate" required>
+                        </div>
+                        <div class="form-field col-span-2">
+                            <label>Customer (Sender)</label>
+                            <select id="customerSelect">
+                                <option value="">-- Select Customer --</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>Status <span class="req">*</span></label>
+                            <select id="shipmentStatus" required>
+                                <option value="Shipment Data Received">Shipment Data Received</option>
+                                <option value="Picked Up">Picked Up</option>
+                                <option value="In Transit">In Transit</option>
+                                <option value="Out for Delivery">Out for Delivery</option>
+                                <option value="Delivered">Delivered</option>
+                                <option value="On Hold">On Hold</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>Doc Type</label>
+                            <select id="docType">
+                                <option value="N - Non Document">N - Non Document</option>
+                                <option value="D - Document">D - Document</option>
+                            </select>
+                        </div>
+                        <div class="form-field col-span-2">
+                            <label>Content Details</label>
+                            <input type="text" id="contentDetails" placeholder="e.g. Documents, Electronics">
+                        </div>
+                        <div class="form-field">
+                            <label>Network (Carrier)</label>
+                            <select id="carrierId">
+                                <option value="">Select</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>Network Tracking No.</label>
+                            <input type="text" id="networkTrackingNo" placeholder="Carrier tracking #">
+                        </div>
+                        <div class="form-field">
+                            <label>Receiver Name</label>
+                            <input type="text" id="receiverName" placeholder="Who received">
+                        </div>
+                        <div class="form-field">
+                            <label>Current Location</label>
+                            <input type="text" id="currentLocation" placeholder="e.g. Mumbai Hub">
+                        </div>
+                        <div class="form-field col-span-2">
+                            <label>Remarks</label>
+                            <input type="text" id="remarks" placeholder="Notes">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Sender Details -->
+            <div class="section-block green">
+                <div class="section-title">📤 Sender Details</div>
+                <div class="section-body">
+                    <div class="form-grid cols-6">
+                        <div class="form-field col-span-2">
+                            <label>Sender Name</label>
+                            <input type="text" id="senderName" placeholder="Type to search or add new...">
+                        </div>
+                        <div class="form-field">
+                            <label>Reference</label>
+                            <input type="text" id="senderReference" placeholder="Reference number">
+                        </div>
+                        <div class="form-field">
+                            <label>Phone Number</label>
+                            <input type="tel" id="senderPhone" placeholder="+91 9876543210">
+                        </div>
+                        <div class="form-field col-span-2">
+                            <label>Address</label>
+                            <input type="text" id="senderAddress" placeholder="Street address">
+                        </div>
+                        <div class="form-field">
+                            <label>City</label>
+                            <input type="text" id="senderCity" placeholder="City">
+                        </div>
+                        <div class="form-field">
+                            <label>State</label>
+                            <input type="text" id="senderState" placeholder="State">
+                        </div>
+                        <div class="form-field">
+                            <label>Pincode</label>
+                            <input type="text" id="senderPincode" placeholder="Pincode">
+                        </div>
+                        <div class="form-field">
+                            <label>Country</label>
+                            <input type="text" id="senderCountry" placeholder="India" value="India">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Consignee Details -->
+            <div class="section-block orange">
+                <div class="section-title">📥 Consignee Details</div>
+                <div class="section-body">
+                    <div class="form-grid cols-6">
+                        <div class="form-field col-span-2">
+                            <label>Consignee Name <span class="req">*</span></label>
+                            <input type="text" id="consigneeName" placeholder="Type to search or add new..." required>
+                        </div>
+                        <div class="form-field col-span-2">
+                            <label>Phone Number</label>
+                            <input type="tel" id="consigneePhone" placeholder="+1 234 567 8900">
+                        </div>
+                        <div class="form-field col-span-2">
+                            <label>Address <span class="req">*</span></label>
+                            <input type="text" id="consigneeAddress" placeholder="Street address" required>
+                        </div>
+                        <div class="form-field">
+                            <label>City <span class="req">*</span></label>
+                            <input type="text" id="consigneeCity" placeholder="City" required>
+                        </div>
+                        <div class="form-field">
+                            <label>State</label>
+                            <input type="text" id="consigneeState" placeholder="State">
+                        </div>
+                        <div class="form-field">
+                            <label>Zipcode</label>
+                            <input type="text" id="consigneeZip" placeholder="Zipcode">
+                        </div>
+                        <div class="form-field">
+                            <label>Country <span class="req">*</span></label>
+                            <input type="text" id="consigneeCountry" placeholder="Destination country" required>
+                        </div>
+                        <div class="form-field">
+                            <label>Email</label>
+                            <input type="email" id="consigneeEmail" placeholder="consignee@email.com">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Package Details -->
+            <div class="section-block purple">
+                <div class="section-title">📦 Package Details</div>
+                <div class="section-body">
+                    <div class="form-grid cols-3" style="margin-bottom:14px;">
+                        <div class="form-field">
+                            <label>No. of Pieces <span class="req">*</span></label>
+                            <input type="number" id="totalPieces" value="1" min="1" oninput="updatePieceRows()">
+                        </div>
+                        <div class="form-field">
+                            <label>Total Actual Weight (kg)</label>
+                            <input type="text" id="totalActualWeight" readonly placeholder="Auto calculated" class="billing-auto">
+                        </div>
+                        <div class="form-field">
+                            <label>Total Vol. Weight (kg)</label>
+                            <input type="text" id="totalVolWeight" readonly placeholder="Auto calculated" class="billing-auto">
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="pkg-table">
+                            <thead>
+                                <tr>
+                                    <th>PIECE #</th>
+                                    <th>ACTUAL WT (KG)</th>
+                                    <th>LENGTH (CM)</th>
+                                    <th>WIDTH (CM)</th>
+                                    <th>HEIGHT (CM)</th>
+                                    <th>VOL. WT (KG)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pieceRows"></tbody>
+                            <tfoot>
+                                <tr class="total-row">
+                                    <td>TOTAL</td>
+                                    <td id="footActualWt">0.00</td>
+                                    <td></td><td></td><td></td>
+                                    <td id="footVolWt">0.00</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Billing Details -->
+            <div class="section-block teal">
+                <div class="section-title">💰 Billing Details</div>
+                <div class="section-body">
+                    <div class="form-grid cols-4" style="margin-bottom:14px;">
+                        <div class="form-field">
+                            <label>Rate per KG (₹)</label>
+                            <input type="number" step="0.01" id="ratePerKg" value="0" oninput="calcBilling()">
+                        </div>
+                        <div class="form-field">
+                            <label>Lump Sum Amount (₹)</label>
+                            <input type="number" step="0.01" id="lumpSum" value="0" oninput="calcBilling()">
+                        </div>
+                        <div class="form-field">
+                            <label>Base Amount (₹)</label>
+                            <input type="number" step="0.01" id="baseAmount" value="0" oninput="calcBilling()">
+                        </div>
+                        <div class="form-field">
+                            <label>Declared Value (₹)</label>
+                            <input type="number" step="0.01" id="declaredValue">
+                        </div>
+                    </div>
+                    <div class="form-grid cols-4" style="margin-bottom:14px;">
+                        <div class="form-field">
+                            <label>GST Amount (₹)</label>
+                            <input type="text" id="gstAmount" readonly placeholder="Auto calculated" class="billing-auto">
+                        </div>
+                        <div class="form-field">
+                            <label>Total Amount (₹) <small style="text-transform:none;font-weight:400;">(incl. GST)</small></label>
+                            <input type="text" id="totalAmount" readonly placeholder="Auto calculated" class="billing-auto">
+                        </div>
+                        <div class="form-field">
+                            <label>Service Type</label>
+                            <input type="text" id="serviceType" placeholder="Express, Economy">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.4px;">Additional Charges</label>
+                        <div id="additionalCharges" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;"></div>
+                        <button type="button" class="btn btn-secondary btn-sm" style="margin-top:10px;" onclick="addCharge()">+ Add Charge</button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+    <div class="drawer-footer">
+        <button type="submit" form="shipmentForm" class="btn btn-primary" id="saveShipmentBtn">💾 Save Shipment</button>
+        <button type="button" class="btn btn-secondary" onclick="resetShipmentForm()">&#x21BA; Reset</button>
+        <button type="button" class="btn btn-secondary" onclick="closeShipmentDrawer()" style="margin-left:auto;">Cancel</button>
+    </div>
+</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Upgrade Modal -->
+<div class="upgrade-overlay" id="upgradeOverlay" onclick="if(event.target===this)closeUpgradeModal()">
+    <div class="upgrade-modal">
+        <div class="upgrade-modal-header">
+            <h2>⚡ Upgrade Your Plan</h2>
+            <button class="drawer-close" onclick="closeUpgradeModal()">&#x2715;</button>
+        </div>
+        <div class="upgrade-modal-body">
+
+            <!-- Free Trial (current) -->
+            <div class="up-card current">
+                <div class="up-current-tag">Current Plan</div>
+                <div class="up-plan-name">Free Trial</div>
+                <div class="up-plan-price">₹0</div>
+                <div class="up-plan-note">14-day trial</div>
+                <ul class="up-features">
+                    <li>✅ 100 shipments</li>
+                    <li>✅ 1 login</li>
+                    <li>✅ AWB generation</li>
+                    <li>✅ Customer management</li>
+                    <li>✅ Public tracking</li>
+                    <li class="na">✗ Invoice generation</li>
+                    <li class="na">✗ Excel export</li>
+                    <li class="na">✗ Priority support</li>
+                </ul>
+                <button class="btn-up-current" disabled>Your current plan</button>
+            </div>
+
+            <!-- Starter (upgrade) -->
+            <div class="up-card upgrade">
+                <div class="up-recommended-tag">⭐ Recommended</div>
+                <div class="up-plan-name">Starter</div>
+                <div class="up-plan-price">₹999 <span>/ month</span></div>
+                <div class="up-plan-note">Billed monthly · cancel anytime</div>
+                <ul class="up-features">
+                    <li>✅ 500 shipments/month</li>
+                    <li>✅ 2 logins</li>
+                    <li>✅ AWB generation</li>
+                    <li>✅ Customer management</li>
+                    <li>✅ Public tracking</li>
+                    <li>✅ Invoice generation</li>
+                    <li>✅ Excel export</li>
+                    <li>✅ Priority support</li>
+                </ul>
+                <button class="btn-up-upgrade" onclick="upgradeToStarter()">Upgrade to Starter →</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Customer Modal -->
+<div class="modal-overlay" id="customerModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="customerModalTitle">Add Customer</h3>
+            <button class="modal-close" onclick="closeCustomerModal()">&times;</button>
+        </div>
+        <form id="customerForm" onsubmit="window.saveCustomer(event)">
+            <input type="hidden" id="editCustomerId">
+            <div class="form-grid cols-2" style="gap:14px;">
+                <div class="form-field col-span-2">
+                    <label>Customer Name <span class="req">*</span></label>
+                    <input type="text" id="customerName" required>
+                </div>
+                <div class="form-field">
+                    <label>A/C Code</label>
+                    <input type="text" id="customerAcCode" placeholder="e.g. CC">
+                </div>
+                <div class="form-field">
+                    <label>GST Number</label>
+                    <input type="text" id="customerGstNo" placeholder="GST No">
+                </div>
+                <div class="form-field">
+                    <label>Phone</label>
+                    <input type="tel" id="customerPhone">
+                </div>
+                <div class="form-field">
+                    <label>Email</label>
+                    <input type="email" id="customerEmail">
+                </div>
+                <div class="form-field col-span-2">
+                    <label>Address</label>
+                    <input type="text" id="customerAddress">
+                </div>
+                <div class="form-field">
+                    <label>City</label>
+                    <input type="text" id="customerCity">
+                </div>
+                <div class="form-field">
+                    <label>State</label>
+                    <input type="text" id="customerState">
+                </div>
+                <div class="form-field">
+                    <label>Country</label>
+                    <input type="text" id="customerCountry">
+                </div>
+                <div class="form-field">
+                    <label>Status</label>
+                    <select id="customerStatus">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeCustomerModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">💾 Save Customer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- View Shipment Modal -->
+<div class="modal-overlay" id="viewShipmentModal">
+    <div class="modal-box" style="max-width:680px;">
+        <div class="modal-header">
+            <h3 id="viewShipmentTitle">Shipment Details</h3>
+            <button class="modal-close" onclick="closeViewShipmentModal()">&times;</button>
+        </div>
+        <div id="viewShipmentBody"></div>
+    </div>
+</div>
+
+<!-- Invoice Print Area (hidden, used for print) -->
+<div id="printArea" style="display:none;"></div>
+
+<script>
+(function() {
+    'use strict';
+
+    const SUPABASE_URL = 'https://cptzvucszoaolehariwu.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_JRUmY_u6soJB11pkWipNEg_HKkRZ0jh';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ── STATE ──
+    let currentClient = null;
+    let allShipments  = [];
+    let allCustomers  = [];
+    let allCarriers   = [];
+    let allInvoices   = [];
+    let chargeCount   = 0;
+
+    // ── HELPERS ──
+    function esc(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
+    }
+
+    function showToast(msg, duration = 3000) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), duration);
+    }
+
+    function fmtDate(d) {
+        if (!d) return '—';
+        return new Date(d).toLocaleDateString('en-IN', { day:'2-digit', month:'2-digit', year:'numeric' });
+    }
+
+    function fmtCurrency(n) {
+        if (n == null || n === '') return '—';
+        return '₹' + Number(n).toFixed(2);
+    }
+
+    function statusBadge(status) {
+        const map = {
+            'Delivered':              'badge-delivered',
+            'In Transit':             'badge-transit',
+            'Booked':                 'badge-booked',
+            'Picked Up':              'badge-pickup',
+            'Out for Delivery':       'badge-outdelivery',
+            'On Hold':                'badge-hold',
+            'Cancelled':              'badge-cancelled',
+            'Shipment Data Received': 'badge-received',
+        };
+        return `<span class="badge ${map[status] || 'badge-booked'}">${esc(status || '—')}</span>`;
+    }
+
+    // ── TABS ──
+    window.switchTab = function(name, btn) {
+        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        document.getElementById('page-' + name).classList.add('active');
+    };
+
+    // ── SHIPMENT MODAL ──
+    window.openShipmentDrawer = function() {
+        resetShipmentForm();
+        document.getElementById('drawerTitle').textContent = 'New Shipment';
+        document.getElementById('drawerOverlay').classList.add('active');
+    };
+    window.closeShipmentDrawer = function() {
+        document.getElementById('drawerOverlay').classList.remove('active');
+    };
+
+    // ── LOGIN ──
+    window.handleLogin = async function(e) {
+        e.preventDefault();
+        const email    = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        const btn      = document.getElementById('loginBtn');
+        const errEl    = document.getElementById('loginError');
+        errEl.style.display = 'none';
+        btn.disabled = true; btn.textContent = 'Signing in...';
+
+        try {
+            const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+            if (authError) { errEl.textContent = 'Invalid email or password.'; errEl.style.display = 'block'; return; }
+
+            const { data: clientData, error: clientError } = await supabase
+                .from('clients').select('*').eq('email', email).single();
+
+            if (clientError || !clientData) {
+                errEl.textContent = 'No client account found for this email.';
+                errEl.style.display = 'block';
+                await supabase.auth.signOut(); return;
+            }
+            if (!clientData.is_active) {
+                errEl.textContent = 'Your account is not active. Please verify your email first.';
+                errEl.style.display = 'block';
+                await supabase.auth.signOut(); return;
+            }
+            if (clientData.subscription_status === 'pending') {
+                window.location.href = 'plans.html'; return;
+            }
+
+            currentClient = clientData;
+            showDashboard();
+        } catch (err) {
+            errEl.textContent = 'Something went wrong. Please try again.';
+            errEl.style.display = 'block';
+        } finally {
+            btn.disabled = false; btn.textContent = 'Sign In';
+        }
+    };
+
+    function showDashboard() {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('dashboardScreen').style.display = 'flex';
+        document.getElementById('navCompanyName').textContent = currentClient.company_name || 'CourierMitra';
+        updatePlanBadge();
+        loadSettings();
+        loadCarriers();
+        loadCustomers();
+        loadShipments();
+        loadInvoices();
+        initPieceRows();
+    }
+
+    function loadBentoStats() {
+        var total = allShipments.length;
+        var delivered   = allShipments.filter(s => (s.status || '').toLowerCase() === 'delivered').length;
+        var inTransit   = allShipments.filter(s => {
+            var st = (s.status || '').toLowerCase();
+            return st === 'in transit' || st === 'in-transit' || st === 'out for delivery';
+        }).length;
+        var pending     = allShipments.filter(s => {
+            var st = (s.status || '').toLowerCase();
+            return st === 'booked' || st === 'pending' || st === 'picked up';
+        }).length;
+
+        // Revenue
+        var revenue = allShipments.reduce(function(sum, s) {
+            return sum + (parseFloat(s.total_amount) || 0);
+        }, 0);
+
+        // This month
+        var now = new Date();
+        var thisMonth = allShipments.filter(function(s) {
+            if (!s.booking_date && !s.created_at) return false;
+            var d = new Date(s.booking_date || s.created_at);
+            return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+        }).length;
+
+        var deliveredPct = total > 0 ? ((delivered / total) * 100).toFixed(1) + '% delivery rate' : 'No shipments yet';
+
+        document.getElementById('bentoTotal').textContent     = total;
+        document.getElementById('bentoDelivered').textContent = delivered;
+        document.getElementById('bentoInTransit').textContent = inTransit;
+        document.getElementById('bentoPending').textContent   = pending;
+        document.getElementById('bentoThisMonth').textContent = thisMonth + ' this month';
+        document.getElementById('bentoCustomers').textContent = allCustomers.length;
+        document.getElementById('bentoDeliveredPct').textContent = deliveredPct;
+        document.getElementById('bentoRevenue').textContent   = revenue > 0
+            ? '₹' + revenue.toLocaleString('en-IN', { maximumFractionDigits: 0 })
+            : '₹0';
+    }
+
+    // ── PLAN BADGE IN SIDEBAR ──
+    function updatePlanBadge() {
+        const plan = currentClient.plan || 'free';
+        const status = currentClient.subscription_status || 'pending';
+        const nameEl = document.getElementById('navPlanName');
+        const tagEl  = document.getElementById('navPlanTag');
+        const upgradeBtn = document.getElementById('upgradeBtn');
+
+        if (plan === 'starter' || status === 'active' && plan !== 'free') {
+            nameEl.textContent = 'Starter Plan';
+            tagEl.textContent  = 'Active';
+            tagEl.className    = 'plan-tag paid';
+            upgradeBtn.style.display = 'none'; // already on paid plan
+        } else {
+            nameEl.textContent = 'Free Trial';
+            tagEl.textContent  = 'Free';
+            tagEl.className    = 'plan-tag free';
+            upgradeBtn.style.display = 'block';
+        }
+    }
+
+    // ── UPGRADE MODAL ──
+    window.openUpgradeModal = function() {
+        document.getElementById('upgradeOverlay').classList.add('active');
+    };
+    window.closeUpgradeModal = function() {
+        document.getElementById('upgradeOverlay').classList.remove('active');
+    };
+    window.upgradeToStarter = function() {
+        const subject = encodeURIComponent('CourierMitra Starter Plan — Upgrade Request');
+        const body    = encodeURIComponent(
+            'Hi CourierMitra Team,\n\n' +
+            'I would like to upgrade to the Starter Plan (₹999/month).\n\n' +
+            'My account email: ' + (currentClient.email || '') + '\n' +
+            'Company: ' + (currentClient.company_name || '') + '\n\n' +
+            'Please activate my account. Thank you.'
+        );
+        window.location.href = 'mailto:support@couriermitra.com?subject=' + subject + '&body=' + body;
+    };
+
+    window.logoutClient = async function() {
+        if (!confirm('Are you sure you want to logout?')) return;
+        await supabase.auth.signOut();
+        currentClient = null;
+        document.getElementById('dashboardScreen').style.display = 'none';
+        document.getElementById('loginScreen').style.display = 'flex';
+    };
+
+    // ── SESSION CHECK ──
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+        if (!session?.user) return;
+        const { data: clientData } = await supabase.from('clients').select('*').eq('email', session.user.email).single();
+        if (clientData && clientData.is_active) {
+            if (clientData.subscription_status === 'pending') { window.location.href = 'plans.html'; return; }
+            currentClient = clientData;
+            showDashboard();
+        }
+    });
+
+    // ── PACKAGE ROWS ──
+    function initPieceRows() { updatePieceRows(); }
+
+    window.updatePieceRows = function() {
+        const n = Math.max(1, parseInt(document.getElementById('totalPieces').value) || 1);
+        const tbody = document.getElementById('pieceRows');
+        // preserve existing values
+        const existing = [];
+        tbody.querySelectorAll('tr').forEach(tr => {
+            existing.push({
+                wt: tr.querySelector('.piece-wt')?.value || '',
+                l:  tr.querySelector('.piece-l')?.value  || '',
+                w:  tr.querySelector('.piece-w')?.value  || '',
+                h:  tr.querySelector('.piece-h')?.value  || '',
+            });
+        });
+        tbody.innerHTML = '';
+        for (let i = 0; i < n; i++) {
+            const prev = existing[i] || {};
+            tbody.innerHTML += `<tr>
+                <td style="text-align:center;font-weight:600;">${i+1}</td>
+                <td><input type="number" step="0.01" class="piece-wt" value="${esc(prev.wt)}" oninput="recalcPkgs()" placeholder="0.00"></td>
+                <td><input type="number" step="0.01" class="piece-l"  value="${esc(prev.l)}"  oninput="recalcPkgs()" placeholder="0"></td>
+                <td><input type="number" step="0.01" class="piece-w"  value="${esc(prev.w)}"  oninput="recalcPkgs()" placeholder="0"></td>
+                <td><input type="number" step="0.01" class="piece-h"  value="${esc(prev.h)}"  oninput="recalcPkgs()" placeholder="0"></td>
+                <td><input type="number" step="0.01" class="piece-vol" readonly placeholder="0.00"></td>
+            </tr>`;
+        }
+        recalcPkgs();
+    };
+
+    window.recalcPkgs = function() {
+        let totalActual = 0, totalVol = 0;
+        document.querySelectorAll('#pieceRows tr').forEach(tr => {
+            const wt = parseFloat(tr.querySelector('.piece-wt')?.value) || 0;
+            const l  = parseFloat(tr.querySelector('.piece-l')?.value)  || 0;
+            const w  = parseFloat(tr.querySelector('.piece-w')?.value)  || 0;
+            const h  = parseFloat(tr.querySelector('.piece-h')?.value)  || 0;
+            const vol = (l * w * h) / 5000;
+            const volInput = tr.querySelector('.piece-vol');
+            if (volInput) volInput.value = vol > 0 ? vol.toFixed(2) : '';
+            totalActual += wt;
+            totalVol    += vol;
+        });
+        document.getElementById('totalActualWeight').value = totalActual.toFixed(2);
+        document.getElementById('totalVolWeight').value    = totalVol.toFixed(2);
+        document.getElementById('footActualWt').textContent = totalActual.toFixed(2);
+        document.getElementById('footVolWt').textContent    = totalVol.toFixed(2);
+        calcBilling();
+    };
+
+    // ── BILLING CALC ──
+    window.calcBilling = function() {
+        if (!currentClient) return;
+        const totalActual = parseFloat(document.getElementById('totalActualWeight').value) || 0;
+        const totalVol    = parseFloat(document.getElementById('totalVolWeight').value)    || 0;
+        const chargeableWt = Math.max(totalActual, totalVol);
+        const ratePerKg   = parseFloat(document.getElementById('ratePerKg').value) || 0;
+        const lumpSum     = parseFloat(document.getElementById('lumpSum').value)   || 0;
+        const baseManual  = parseFloat(document.getElementById('baseAmount').value) || 0;
+
+        const baseFromRate = chargeableWt * ratePerKg;
+        const base = baseManual > 0 ? baseManual : (baseFromRate + lumpSum);
+
+        // Get extra charges
+        let extra = 0;
+        document.querySelectorAll('.extra-charge-amt').forEach(inp => { extra += parseFloat(inp.value) || 0; });
+
+        const cgst = parseFloat(currentClient.cgst_rate || 0);
+        const sgst = parseFloat(currentClient.sgst_rate || 0);
+        const igst = parseFloat(currentClient.igst_rate || 0);
+        const gstRate = igst > 0 ? igst : (cgst + sgst);
+        const gstAmt  = ((base + extra) * gstRate) / 100;
+        const total   = base + extra + gstAmt;
+
+        document.getElementById('gstAmount').value  = gstAmt.toFixed(2);
+        document.getElementById('totalAmount').value = total.toFixed(2);
+    };
+
+    // ── ADDITIONAL CHARGES ──
+    window.addCharge = function() {
+        chargeCount++;
+        const div = document.createElement('div');
+        div.style.cssText = 'display:flex;gap:6px;align-items:center;';
+        div.innerHTML = `
+            <input type="text" placeholder="Charge name" style="padding:6px 10px;border:1.5px solid #e5e7eb;border-radius:6px;font-size:13px;width:160px;">
+            <input type="number" step="0.01" class="extra-charge-amt" placeholder="Amount" oninput="calcBilling()"
+                style="padding:6px 10px;border:1.5px solid #e5e7eb;border-radius:6px;font-size:13px;width:120px;">
+            <button type="button" onclick="this.parentElement.remove();calcBilling();"
+                style="background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:13px;">✕</button>
+        `;
+        document.getElementById('additionalCharges').appendChild(div);
+    };
+
+    // ── CARRIERS (hardcoded global list) ──
+    const CARRIERS = [
+        'DHL Express',
+        'FedEx International',
+        'UPS',
+        'Aramex',
+        'Blue Dart',
+        'DTDC',
+        'Delhivery',
+        'Ecom Express',
+        'India Post (Speed Post)',
+        'Xpressbees',
+        'Shadowfax',
+        'TNT (FedEx)',
+        'Maersk (Sea Freight)',
+        'Air India Cargo',
+        'Other',
+    ];
+
+    function loadCarriers() {
+        const sel       = document.getElementById('carrierId');
+        const filterSel = document.getElementById('filterNetwork');
+        sel.innerHTML       = '<option value="">-- Select Carrier --</option>';
+        filterSel.innerHTML = '<option value="">All Carriers</option>';
+        CARRIERS.forEach(name => {
+            sel.innerHTML       += `<option value="${esc(name)}">${esc(name)}</option>`;
+            filterSel.innerHTML += `<option value="${esc(name)}">${esc(name)}</option>`;
+        });
+    }
+
+    // ── SHIPMENTS ──
+    async function loadShipments() {
+        const { data, error } = await supabase
+            .from('shipments')
+            .select('*')
+            .eq('client_id', currentClient.id)
+            .order('created_at', { ascending: false });
+        if (error) { console.error(error); return; }
+        allShipments = data || [];
+        renderShipments(allShipments);
+        document.getElementById('navTotalShipments').textContent = allShipments.length + ' shipments total';
+        loadBentoStats();
+    }
+
+    function renderShipments(list) {
+        const tbody  = document.getElementById('shipmentsTableBody');
+        const empty  = document.getElementById('shipmentsEmptyState');
+        const info   = document.getElementById('shipmentsListInfo');
+        info.textContent = `Showing ${list.length} shipment${list.length !== 1 ? 's' : ''}`;
+
+        if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+        empty.style.display = 'none';
+
+        tbody.innerHTML = list.map((s, i) => {
+            const carrierName = s.carrier_name || '—';
+            const chargeableWt = Math.max(
+                parseFloat(s.total_actual_weight || s.actual_weight || 0),
+                parseFloat(s.total_vol_weight || 0)
+            );
+            return `<tr>
+                <td>${i + 1}</td>
+                <td><span class="awb-link" onclick="window.viewShipment('${esc(s.id)}')">${esc(s.awb_no)}</span></td>
+                <td>${fmtDate(s.booking_date)}</td>
+                <td>${esc(s.sender_name || '—')}</td>
+                <td>${esc(s.consignee_name)}</td>
+                <td>${esc(s.consignee_city || '')}${s.consignee_country ? ', ' + esc(s.consignee_country) : ''}</td>
+                <td>${statusBadge(s.status)}</td>
+                <td>${esc(carrierName)}</td>
+                <td>${esc(s.pieces || 1)}</td>
+                <td>${chargeableWt > 0 ? chargeableWt.toFixed(2) + 'kg' : '—'}</td>
+                <td>${fmtCurrency(s.total_amount)}</td>
+                <td>
+                    <div style="display:flex;gap:4px;">
+                        <button class="btn btn-secondary btn-icon btn-sm" onclick="window.editShipment('${esc(s.id)}')" title="Edit">✏️</button>
+                        <button class="btn btn-danger btn-icon btn-sm" onclick="window.deleteShipment('${esc(s.id)}','${esc(s.awb_no)}')" title="Delete">🗑️</button>
+                    </div>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    window.searchShipments = function() {
+        const q       = (document.getElementById('searchShipments').value || '').toLowerCase();
+        const network = (document.getElementById('filterNetwork').value  || '').toLowerCase();
+        const status  = (document.getElementById('filterStatus').value   || '');
+        const from    = document.getElementById('filterFromDate').value;
+        const to      = document.getElementById('filterToDate').value;
+
+        const filtered = allShipments.filter(s => {
+            const matchQ = !q ||
+                (s.awb_no || '').toLowerCase().includes(q) ||
+                (s.consignee_name || '').toLowerCase().includes(q) ||
+                (s.sender_name || '').toLowerCase().includes(q) ||
+                (s.consignee_city || '').toLowerCase().includes(q) ||
+                (s.consignee_country || '').toLowerCase().includes(q);
+            const matchNet = !network || (s.carrier_name || '').toLowerCase() === network.toLowerCase();
+            const matchSt  = !status  || s.status === status;
+            const d = s.booking_date ? new Date(s.booking_date) : null;
+            const matchFrom = !from || (d && d >= new Date(from));
+            const matchTo   = !to   || (d && d <= new Date(to));
+            return matchQ && matchNet && matchSt && matchFrom && matchTo;
+        });
+        renderShipments(filtered);
+    };
+
+    window.clearFilters = function() {
+        document.getElementById('searchShipments').value = '';
+        document.getElementById('filterNetwork').value   = '';
+        document.getElementById('filterStatus').value    = '';
+        document.getElementById('filterFromDate').value  = '';
+        document.getElementById('filterToDate').value    = '';
+        renderShipments(allShipments);
+    };
+
+    // ── SAVE SHIPMENT ──
+    window.saveShipment = async function(e) {
+        e.preventDefault();
+        const editId = document.getElementById('editShipmentId').value;
+
+        // Collect piece data
+        const pieces = [];
+        document.querySelectorAll('#pieceRows tr').forEach(tr => {
+            pieces.push({
+                actual_weight: parseFloat(tr.querySelector('.piece-wt')?.value) || 0,
+                length: parseFloat(tr.querySelector('.piece-l')?.value) || 0,
+                width:  parseFloat(tr.querySelector('.piece-w')?.value) || 0,
+                height: parseFloat(tr.querySelector('.piece-h')?.value) || 0,
+                vol_weight: parseFloat(tr.querySelector('.piece-vol')?.value) || 0,
+            });
+        });
+
+        const data = {
+            client_id:            currentClient.id,
+            booking_date:         document.getElementById('bookingDate').value,
+            status:               document.getElementById('shipmentStatus').value,
+            doc_type:             document.getElementById('docType').value,
+            content_description:  document.getElementById('contentDetails').value,
+            carrier_id:           null,
+            carrier_name:         document.getElementById('carrierId').value || null,
+            network_tracking_no:  document.getElementById('networkTrackingNo').value,
+            receiver_name:        document.getElementById('receiverName').value,
+            current_location:     document.getElementById('currentLocation').value,
+            remarks:              document.getElementById('remarks').value,
+            // sender
+            sender_name:          document.getElementById('senderName').value,
+            sender_reference:     document.getElementById('senderReference').value,
+            sender_phone:         document.getElementById('senderPhone').value,
+            sender_address:       document.getElementById('senderAddress').value,
+            sender_city:          document.getElementById('senderCity').value,
+            sender_state:         document.getElementById('senderState').value,
+            sender_pincode:       document.getElementById('senderPincode').value,
+            sender_country:       document.getElementById('senderCountry').value,
+            // consignee
+            consignee_name:       document.getElementById('consigneeName').value,
+            consignee_phone:      document.getElementById('consigneePhone').value,
+            consignee_address:    document.getElementById('consigneeAddress').value,
+            consignee_city:       document.getElementById('consigneeCity').value,
+            consignee_state:      document.getElementById('consigneeState').value,
+            consignee_zip:        document.getElementById('consigneeZip').value,
+            consignee_country:    document.getElementById('consigneeCountry').value,
+            consignee_email:      document.getElementById('consigneeEmail').value,
+            // package
+            pieces:               parseInt(document.getElementById('totalPieces').value) || 1,
+            total_actual_weight:  parseFloat(document.getElementById('totalActualWeight').value) || null,
+            total_vol_weight:     parseFloat(document.getElementById('totalVolWeight').value)    || null,
+            piece_data:           JSON.stringify(pieces),
+            // billing
+            rate_per_kg:          parseFloat(document.getElementById('ratePerKg').value)   || null,
+            lump_sum_amount:      parseFloat(document.getElementById('lumpSum').value)      || null,
+            base_amount:          parseFloat(document.getElementById('baseAmount').value)   || null,
+            declared_value:       parseFloat(document.getElementById('declaredValue').value) || null,
+            gst_amount:           parseFloat(document.getElementById('gstAmount').value)    || null,
+            total_amount:         parseFloat(document.getElementById('totalAmount').value)  || null,
+            service_type:         document.getElementById('serviceType').value,
+        };
+
+        // customer link
+        const custSel = document.getElementById('customerSelect').value;
+        if (custSel) data.customer_id = custSel;
+
+        try {
+            if (editId) {
+                // check status change for tracking event
+                const { data: old } = await supabase.from('shipments').select('status').eq('id', editId).single();
+                const { error } = await supabase.from('shipments').update(data).eq('id', editId);
+                if (error) throw error;
+                if (old && old.status !== data.status) {
+                    await supabase.from('tracking_events').insert([{
+                        shipment_id: editId,
+                        event_date: new Date().toISOString(),
+                        status: data.status,
+                        location: data.current_location || '',
+                        description: `Status updated to ${data.status}`,
+                    }]);
+                }
+                showToast('Shipment updated!');
+            } else {
+                // generate AWB
+                const { data: cd } = await supabase.from('clients')
+                    .select('awb_prefix, awb_counter').eq('id', currentClient.id).single();
+                data.awb_no = cd.awb_prefix + String(cd.awb_counter).padStart(6, '0');
+                await supabase.from('clients').update({ awb_counter: cd.awb_counter + 1 }).eq('id', currentClient.id);
+
+                const { data: ns, error } = await supabase.from('shipments').insert([data]).select().single();
+                if (error) throw error;
+
+                await supabase.from('tracking_events').insert([{
+                    shipment_id: ns.id,
+                    event_date: new Date().toISOString(),
+                    status: data.status,
+                    location: data.current_location || '',
+                    description: `Shipment ${data.status}`,
+                }]);
+                showToast('Shipment created! AWB: ' + data.awb_no);
+            }
+            resetShipmentForm();
+            await loadShipments();
+            closeShipmentDrawer();
+        } catch (err) {
+            console.error(err);
+            alert('Error: ' + err.message);
+        }
+    };
+
+    window.resetShipmentForm = function() {
+        document.getElementById('shipmentForm').reset();
+        document.getElementById('editShipmentId').value = '';
+        document.getElementById('awbNo').value = '';
+        document.getElementById('saveShipmentBtn').textContent = '💾 Save Shipment';
+        document.getElementById('bookingDate').valueAsDate = new Date();
+        document.getElementById('senderCountry').value = 'India';
+        document.getElementById('additionalCharges').innerHTML = '';
+        chargeCount = 0;
+        updatePieceRows();
+        calcBilling();
+    };
+
+    window.editShipment = async function(id) {
+        const { data: s, error } = await supabase.from('shipments').select('*').eq('id', id).single();
+        if (error) { alert('Error loading shipment'); return; }
+
+        document.getElementById('editShipmentId').value = s.id;
+        document.getElementById('awbNo').value           = s.awb_no || '';
+        document.getElementById('bookingDate').value     = s.booking_date || '';
+        document.getElementById('shipmentStatus').value  = s.status || 'Shipment Data Received';
+        document.getElementById('docType').value         = s.doc_type || 'N - Non Document';
+        document.getElementById('contentDetails').value  = s.content_description || '';
+        document.getElementById('carrierId').value       = s.carrier_name || '';
+        document.getElementById('networkTrackingNo').value = s.network_tracking_no || '';
+        document.getElementById('receiverName').value    = s.receiver_name || '';
+        document.getElementById('currentLocation').value = s.current_location || '';
+        document.getElementById('remarks').value         = s.remarks || '';
+        document.getElementById('senderName').value      = s.sender_name || '';
+        document.getElementById('senderReference').value = s.sender_reference || '';
+        document.getElementById('senderPhone').value     = s.sender_phone || '';
+        document.getElementById('senderAddress').value   = s.sender_address || '';
+        document.getElementById('senderCity').value      = s.sender_city || '';
+        document.getElementById('senderState').value     = s.sender_state || '';
+        document.getElementById('senderPincode').value   = s.sender_pincode || '';
+        document.getElementById('senderCountry').value   = s.sender_country || 'India';
+        document.getElementById('consigneeName').value   = s.consignee_name || '';
+        document.getElementById('consigneePhone').value  = s.consignee_phone || '';
+        document.getElementById('consigneeAddress').value = s.consignee_address || '';
+        document.getElementById('consigneeCity').value   = s.consignee_city || '';
+        document.getElementById('consigneeState').value  = s.consignee_state || '';
+        document.getElementById('consigneeZip').value    = s.consignee_zip || '';
+        document.getElementById('consigneeCountry').value = s.consignee_country || '';
+        document.getElementById('consigneeEmail').value  = s.consignee_email || '';
+        document.getElementById('totalPieces').value     = s.pieces || 1;
+        document.getElementById('ratePerKg').value       = s.rate_per_kg || 0;
+        document.getElementById('lumpSum').value         = s.lump_sum_amount || 0;
+        document.getElementById('baseAmount').value      = s.base_amount || 0;
+        document.getElementById('declaredValue').value   = s.declared_value || '';
+        document.getElementById('serviceType').value     = s.service_type || '';
+        if (s.customer_id) document.getElementById('customerSelect').value = s.customer_id;
+
+        // restore piece rows
+        try {
+            const pieceData = JSON.parse(s.piece_data || '[]');
+            const tbody = document.getElementById('pieceRows');
+            tbody.innerHTML = '';
+            (pieceData.length ? pieceData : Array(s.pieces || 1).fill({})).forEach((p, i) => {
+                tbody.innerHTML += `<tr>
+                    <td style="text-align:center;font-weight:600;">${i+1}</td>
+                    <td><input type="number" step="0.01" class="piece-wt" value="${p.actual_weight||''}" oninput="recalcPkgs()"></td>
+                    <td><input type="number" step="0.01" class="piece-l"  value="${p.length||''}"        oninput="recalcPkgs()"></td>
+                    <td><input type="number" step="0.01" class="piece-w"  value="${p.width||''}"         oninput="recalcPkgs()"></td>
+                    <td><input type="number" step="0.01" class="piece-h"  value="${p.height||''}"        oninput="recalcPkgs()"></td>
+                    <td><input type="number" step="0.01" class="piece-vol" readonly value="${p.vol_weight||''}"></td>
+                </tr>`;
+            });
+            recalcPkgs();
+        } catch(e) { updatePieceRows(); }
+
+        document.getElementById('saveShipmentBtn').textContent = '💾 Update Shipment';
+        document.getElementById('drawerTitle').textContent = 'Edit Shipment';
+        document.getElementById('drawerOverlay').classList.add('active');
+    };
+
+    window.deleteShipment = async function(id, awb) {
+        if (!confirm(`Delete shipment ${awb}? This cannot be undone.`)) return;
+        const { error } = await supabase.from('shipments').delete().eq('id', id);
+        if (error) { alert('Error: ' + error.message); return; }
+        showToast('Shipment deleted.');
+        await loadShipments();
+    };
+
+    window.viewShipment = async function(id) {
+        const modal = document.getElementById('viewShipmentModal');
+        const body  = document.getElementById('viewShipmentBody');
+        body.innerHTML = '<div style="text-align:center;padding:40px;color:#9ca3af;">Loading...</div>';
+        modal.classList.add('active');
+
+        const { data: s, error } = await supabase
+            .from('shipments')
+            .select('*, tracking_events(status, location, description, event_date)')
+            .eq('id', id).single();
+        if (error) { body.innerHTML = '<p style="color:red;padding:20px;">Failed to load.</p>'; return; }
+
+        document.getElementById('viewShipmentTitle').textContent = 'AWB: ' + (s.awb_no || '');
+        const trackUrl = window.location.origin + '/track.html?awb=' + encodeURIComponent(s.awb_no);
+        const events = (s.tracking_events || []).sort((a,b) => new Date(b.event_date) - new Date(a.event_date));
+
+        body.innerHTML = `
+            <div class="tracking-url-row">
+                <span>${esc(trackUrl)}</span>
+                <button class="copy-btn" id="copyBtn" onclick="copyLink('${esc(trackUrl)}')">📋 Copy Link</button>
+            </div>
+            <div class="view-section-title">Shipment Status</div>
+            <div style="margin-bottom:16px;">
+                ${statusBadge(s.status)}
+                ${s.current_location ? `<span style="margin-left:10px;font-size:13px;color:#6b7280;">📍 ${esc(s.current_location)}</span>` : ''}
+            </div>
+            <div class="view-section-title">Consignee</div>
+            <div class="view-grid">
+                <div class="view-item"><label>Name</label><span>${esc(s.consignee_name)}</span></div>
+                <div class="view-item"><label>Phone</label><span>${esc(s.consignee_phone||'—')}</span></div>
+                <div class="view-item"><label>City</label><span>${esc(s.consignee_city||'')}, ${esc(s.consignee_country||'')}</span></div>
+                <div class="view-item"><label>Address</label><span>${esc(s.consignee_address||'—')}</span></div>
+            </div>
+            <div class="view-section-title">Shipment Info</div>
+            <div class="view-grid">
+                <div class="view-item"><label>Carrier</label><span>${esc(s.carrier_name||'—')}</span></div>
+                <div class="view-item"><label>Pieces</label><span>${esc(String(s.pieces||1))}</span></div>
+                <div class="view-item"><label>Actual Wt</label><span>${s.total_actual_weight ? s.total_actual_weight+'kg' : '—'}</span></div>
+                <div class="view-item"><label>Total Amount</label><span>${fmtCurrency(s.total_amount)}</span></div>
+                <div class="view-item"><label>Booking Date</label><span>${fmtDate(s.booking_date)}</span></div>
+                <div class="view-item"><label>Network Track No.</label><span>${esc(s.network_tracking_no||'—')}</span></div>
+            </div>
+            <div class="view-section-title">Tracking History</div>
+            ${events.length === 0
+                ? '<p style="color:#9ca3af;font-size:13px;">No tracking events yet.</p>'
+                : events.map(ev => `
+                    <div class="tracking-event">
+                        <div class="tracking-dot"></div>
+                        <div>
+                            <div class="tracking-event-status">${esc(ev.status)}${ev.location ? ' — ' + esc(ev.location) : ''}</div>
+                            <div class="tracking-event-desc">${esc(ev.description||'')}</div>
+                            <div class="tracking-event-time">${new Date(ev.event_date).toLocaleString('en-IN')}</div>
+                        </div>
+                    </div>`).join('')
+            }
+            <div style="display:flex;gap:10px;margin-top:20px;">
+                <button class="btn btn-primary" onclick="window.editShipment('${esc(s.id)}');closeViewShipmentModal();">✏️ Edit</button>
+                <button class="btn btn-secondary" onclick="closeViewShipmentModal()">Close</button>
+            </div>`;
+    };
+
+    window.closeViewShipmentModal = function() {
+        document.getElementById('viewShipmentModal').classList.remove('active');
+    };
+
+    window.copyLink = function(url) {
+        navigator.clipboard.writeText(url).then(() => {
+            const btn = document.getElementById('copyBtn');
+            if (btn) { btn.textContent = '✅ Copied!'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = '📋 Copy Link'; btn.classList.remove('copied'); }, 2000); }
+        });
+    };
+
+    // ── EXPORT CSV ──
+    window.exportShipmentsCSV = function() {
+        const headers = ['AWB','Date','Sender','Consignee','Destination','Status','Network','Pieces','Weight','Amount'];
+        const rows = allShipments.map(s => [
+            s.awb_no, s.booking_date, s.sender_name||'', s.consignee_name,
+            (s.consignee_city||'') + (s.consignee_country ? ', '+s.consignee_country : ''),
+            s.status, s.carrier_name||'', s.pieces||1,
+            s.total_actual_weight||'', s.total_amount||''
+        ]);
+        const csv = [headers, ...rows].map(r => r.map(c => `"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+        const a = document.createElement('a');
+        a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+        a.download = 'shipments.csv';
+        a.click();
+    };
+
+    // ── CUSTOMERS ──
+    async function loadCustomers() {
+        const { data } = await supabase.from('customers')
+            .select('*').eq('client_id', currentClient.id).order('created_at', { ascending: false });
+        allCustomers = data || [];
+        renderCustomers();
+        populateCustomerDropdowns();
+        loadBentoStats();
+    }
+
+    function populateCustomerDropdowns() {
+        const sel1 = document.getElementById('customerSelect');
+        const sel2 = document.getElementById('invoiceCustomer');
+        const cur1 = sel1.value, cur2 = sel2.value;
+        sel1.innerHTML = '<option value="">-- Select Customer --</option>';
+        sel2.innerHTML = '<option value="">-- Select Customer --</option>';
+        allCustomers.forEach(c => {
+            const opt = `<option value="${esc(c.id)}">${esc(c.name)}</option>`;
+            sel1.innerHTML += opt;
+            sel2.innerHTML += opt;
+        });
+        sel1.value = cur1; sel2.value = cur2;
+    }
+
+    function renderCustomers() {
+        const tbody = document.getElementById('customersTableBody');
+        const empty = document.getElementById('customersEmptyState');
+        if (!allCustomers.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+        empty.style.display = 'none';
+        tbody.innerHTML = allCustomers.map(c => `<tr>
+            <td><strong>${esc(c.ac_code||'—')}</strong></td>
+            <td>${esc(c.name)}</td>
+            <td>${esc(c.city||'—')}</td>
+            <td>${esc(c.state||'—')}</td>
+            <td>${esc(c.gst_no||'—')}</td>
+            <td>${esc(c.phone||'—')}</td>
+            <td><span class="badge ${c.status === 'inactive' ? 'badge-inactive' : 'badge-active'}">${c.status === 'inactive' ? 'INACTIVE' : 'ACTIVE'}</span></td>
+            <td>
+                <div style="display:flex;gap:4px;">
+                    <button class="btn btn-secondary btn-icon btn-sm" onclick="openEditCustomerModal('${esc(c.id)}')" title="Edit">✏️</button>
+                    <button class="btn btn-danger btn-icon btn-sm" onclick="deleteCustomer('${esc(c.id)}','${esc(c.name)}')" title="Delete">🗑️</button>
+                </div>
+            </td>
+        </tr>`).join('');
+    }
+
+    window.openCustomerModal = function() {
+        document.getElementById('editCustomerId').value = '';
+        document.getElementById('customerForm').reset();
+        document.getElementById('customerModalTitle').textContent = 'Add Customer';
+        document.getElementById('customerStatus').value = 'active';
+        document.getElementById('customerModal').classList.add('active');
+    };
+
+    window.openEditCustomerModal = async function(id) {
+        const c = allCustomers.find(x => x.id === id);
+        if (!c) return;
+        document.getElementById('editCustomerId').value    = c.id;
+        document.getElementById('customerName').value     = c.name || '';
+        document.getElementById('customerAcCode').value   = c.ac_code || '';
+        document.getElementById('customerGstNo').value    = c.gst_no || '';
+        document.getElementById('customerPhone').value    = c.phone || '';
+        document.getElementById('customerEmail').value    = c.email || '';
+        document.getElementById('customerAddress').value  = c.address || '';
+        document.getElementById('customerCity').value     = c.city || '';
+        document.getElementById('customerState').value    = c.state || '';
+        document.getElementById('customerCountry').value  = c.country || '';
+        document.getElementById('customerStatus').value   = c.status || 'active';
+        document.getElementById('customerModalTitle').textContent = 'Edit Customer';
+        document.getElementById('customerModal').classList.add('active');
+    };
+
+    window.closeCustomerModal = function() {
+        document.getElementById('customerModal').classList.remove('active');
+    };
+
+    window.saveCustomer = async function(e) {
+        e.preventDefault();
+        const editId = document.getElementById('editCustomerId').value;
+        const payload = {
+            client_id: currentClient.id,
+            name:     document.getElementById('customerName').value,
+            ac_code:  document.getElementById('customerAcCode').value,
+            gst_no:   document.getElementById('customerGstNo').value,
+            phone:    document.getElementById('customerPhone').value,
+            email:    document.getElementById('customerEmail').value,
+            address:  document.getElementById('customerAddress').value,
+            city:     document.getElementById('customerCity').value,
+            state:    document.getElementById('customerState').value,
+            country:  document.getElementById('customerCountry').value,
+            status:   document.getElementById('customerStatus').value,
+        };
+        try {
+            if (editId) {
+                const { error } = await supabase.from('customers').update(payload).eq('id', editId);
+                if (error) throw error;
+                showToast('Customer updated!');
+            } else {
+                const { error } = await supabase.from('customers').insert([payload]);
+                if (error) throw error;
+                showToast('Customer added!');
+            }
+            closeCustomerModal();
+            await loadCustomers();
+        } catch (err) { alert('Error: ' + err.message); }
+    };
+
+    window.deleteCustomer = async function(id, name) {
+        if (!confirm(`Delete customer "${name}"?`)) return;
+        const { error } = await supabase.from('customers').delete().eq('id', id);
+        if (error) { alert('Error: ' + error.message); return; }
+        showToast('Customer deleted.');
+        await loadCustomers();
+    };
+
+    // ── INVOICES ──
+    async function loadInvoices() {
+        const { data } = await supabase.from('invoices')
+            .select('*, customers(name)')
+            .eq('client_id', currentClient.id)
+            .order('created_at', { ascending: false });
+        allInvoices = data || [];
+        renderInvoices();
+    }
+
+    function renderInvoices() {
+        const tbody = document.getElementById('invoicesTableBody');
+        const empty = document.getElementById('invoicesEmptyState');
+        if (!allInvoices.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+        empty.style.display = 'none';
+        tbody.innerHTML = allInvoices.map(inv => `<tr>
+            <td><strong>${esc(inv.invoice_no)}</strong></td>
+            <td>${fmtDate(inv.invoice_date)}</td>
+            <td>${esc(inv.customers?.name || '—')}</td>
+            <td>${fmtDate(inv.period_from)} to ${fmtDate(inv.period_to)}</td>
+            <td>${esc(inv.shipment_count || 0)}</td>
+            <td><strong>${fmtCurrency(inv.grand_total)}</strong></td>
+            <td><span class="badge ${inv.status === 'paid' ? 'badge-paid' : 'badge-generated'}">${(inv.status||'generated').toUpperCase()}</span></td>
+            <td>
+                <div style="display:flex;gap:4px;">
+                    <button class="btn btn-secondary btn-icon btn-sm" onclick="viewInvoice('${esc(inv.id)}')" title="View">👁️</button>
+                    <button class="btn btn-danger btn-icon btn-sm" onclick="deleteInvoice('${esc(inv.id)}')" title="Delete">🗑️</button>
+                </div>
+            </td>
+        </tr>`).join('');
+    }
+
+    window.generateInvoice = async function() {
+        const custId = document.getElementById('invoiceCustomer').value;
+        const from   = document.getElementById('invoiceFromDate').value;
+        const to     = document.getElementById('invoiceToDate').value;
+        if (!custId || !from || !to) { alert('Please select a customer and date range.'); return; }
+
+        const customer = allCustomers.find(c => c.id === custId);
+
+        // fetch shipments for this customer in range
+        const { data: ships, error } = await supabase.from('shipments')
+            .select('*')
+            .eq('client_id', currentClient.id)
+            .eq('customer_id', custId)
+            .gte('booking_date', from)
+            .lte('booking_date', to);
+        if (error) { alert('Error fetching shipments: ' + error.message); return; }
+        if (!ships || ships.length === 0) { alert('No shipments found for this customer in the selected date range.'); return; }
+
+        const grandTotal = ships.reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0);
+        const totalGst   = ships.reduce((sum, s) => sum + (parseFloat(s.gst_amount) || 0), 0);
+
+        // generate invoice number: LOC/YY-YY/PREFIX/NNNN
+        const now = new Date();
+        const fy = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
+        const fyStr = `${fy}-${String(fy+1).slice(2)}`;
+        const loc = currentClient.location_code || 'DEL';
+        const prefix = currentClient.awb_prefix || 'CM';
+        const seqPadded = String(allInvoices.length + 1).padStart(4, '0');
+        const invoiceNo = `${loc}/${fyStr}/${prefix}/${seqPadded}`;
+
+        const payload = {
+            client_id:      currentClient.id,
+            customer_id:    custId,
+            invoice_no:     invoiceNo,
+            invoice_date:   now.toISOString().split('T')[0],
+            period_from:    from,
+            period_to:      to,
+            shipment_count: ships.length,
+            grand_total:    grandTotal,
+            gst_total:      totalGst,
+            status:         'generated',
+            shipment_ids:   JSON.stringify(ships.map(s => s.id)),
+        };
+
+        const { data: inv, error: invErr } = await supabase.from('invoices').insert([payload]).select().single();
+        if (invErr) { alert('Error saving invoice: ' + invErr.message); return; }
+
+        showToast('Invoice generated: ' + invoiceNo);
+        await loadInvoices();
+        // print preview
+        printInvoice(inv, customer, ships);
+    };
+
+    function printInvoice(inv, customer, ships) {
+        const rows = ships.map((s, i) => `
+            <tr>
+                <td>${i+1}</td>
+                <td>${esc(s.awb_no)}</td>
+                <td>${fmtDate(s.booking_date)}</td>
+                <td>${esc(s.consignee_name)}</td>
+                <td>${esc(s.consignee_city||'')}${s.consignee_country ? ', '+esc(s.consignee_country) : ''}</td>
+                <td>${esc(s.pieces||1)}</td>
+                <td>${s.total_actual_weight ? s.total_actual_weight+'kg' : '—'}</td>
+                <td style="text-align:right;">${fmtCurrency(s.base_amount)}</td>
+                <td style="text-align:right;">${fmtCurrency(s.gst_amount)}</td>
+                <td style="text-align:right;font-weight:700;">${fmtCurrency(s.total_amount)}</td>
+            </tr>`).join('');
+
+        var bankHtml = currentClient.bank_name
+            ? '<h4>Bank Details:</h4><div>' + esc(currentClient.bank_name) + ' | Branch: ' + esc(currentClient.bank_branch||'') + '</div><div>A/C: ' + esc(currentClient.bank_account||'') + ' | IFSC: ' + esc(currentClient.bank_ifsc||'') + '</div>'
+            : '';
+
+        var printHtml = '<style>'
+            + 'body{font-family:Arial,sans-serif;font-size:13px;color:#000;}'
+            + '.inv-header{display:flex;justify-content:space-between;margin-bottom:20px;}'
+            + '.inv-title{font-size:20px;font-weight:700;color:#1e3a5f;}'
+            + 'h4{margin:16px 0 8px;font-size:13px;color:#374151;}'
+            + 'table{width:100%;border-collapse:collapse;margin-bottom:16px;}'
+            + 'th{background:#1e3a5f;color:white;padding:7px 10px;text-align:left;font-size:11px;}'
+            + 'td{padding:7px 10px;border-bottom:1px solid #e5e7eb;font-size:12px;}'
+            + '.total-row{font-weight:700;background:#f9fafb;}'
+            + '</style>'
+            + '<div class="inv-header">'
+            +   '<div>'
+            +     '<div class="inv-title">' + esc(currentClient.company_name || 'CourierMitra') + '</div>'
+            +     '<div>' + esc(currentClient.address || '') + ' ' + esc(currentClient.address2 || '') + '</div>'
+            +     '<div>GST: ' + esc(currentClient.gst_number||'—') + ' | ' + esc(currentClient.email) + '</div>'
+            +   '</div>'
+            +   '<div style="text-align:right;">'
+            +     '<div style="font-size:16px;font-weight:700;">TAX INVOICE</div>'
+            +     '<div>Invoice No: <strong>' + esc(inv.invoice_no) + '</strong></div>'
+            +     '<div>Date: ' + fmtDate(inv.invoice_date) + '</div>'
+            +   '</div>'
+            + '</div>'
+            + '<h4>Bill To:</h4>'
+            + '<div><strong>' + esc(customer ? customer.name : '—') + '</strong></div>'
+            + '<div>GST: ' + esc(customer ? customer.gst_no||'—' : '—') + ' | Phone: ' + esc(customer ? customer.phone||'—' : '—') + '</div>'
+            + '<div>Period: ' + fmtDate(inv.period_from) + ' to ' + fmtDate(inv.period_to) + '</div>'
+            + '<h4>Shipments:</h4>'
+            + '<table><thead><tr>'
+            +   '<th>#</th><th>AWB</th><th>Date</th><th>Consignee</th>'
+            +   '<th>Destination</th><th>Pcs</th><th>Wt</th>'
+            +   '<th style="text-align:right;">Base</th>'
+            +   '<th style="text-align:right;">GST</th>'
+            +   '<th style="text-align:right;">Total</th>'
+            + '</tr></thead><tbody>' + rows + '</tbody>'
+            + '<tfoot><tr class="total-row">'
+            +   '<td colspan="7">Grand Total (' + inv.shipment_count + ' shipments)</td>'
+            +   '<td></td>'
+            +   '<td style="text-align:right;">' + fmtCurrency(inv.gst_total) + '</td>'
+            +   '<td style="text-align:right;">' + fmtCurrency(inv.grand_total) + '</td>'
+            + '</tr></tfoot></table>'
+            + bankHtml;
+
+        var win = window.open('', '_blank');
+        win.document.write('<!DOCTYPE html><html><head><title>Invoice ' + esc(inv.invoice_no) + '<\/title><\/head><body>' + printHtml + '<\/body><\/html>');
+        win.document.close();
+        win.print();
+    }
+
+    window.viewInvoice = async function(id) {
+        const inv = allInvoices.find(x => x.id === id);
+        if (!inv) return;
+        const customer = allCustomers.find(c => c.id === inv.customer_id);
+        let shipIds = [];
+        try { shipIds = JSON.parse(inv.shipment_ids || '[]'); } catch(e) {}
+        const ships = allShipments.filter(s => shipIds.includes(s.id));
+        printInvoice(inv, customer, ships);
+    };
+
+    window.deleteInvoice = async function(id) {
+        if (!confirm('Delete this invoice?')) return;
+        const { error } = await supabase.from('invoices').delete().eq('id', id);
+        if (error) { alert('Error: ' + error.message); return; }
+        showToast('Invoice deleted.');
+        await loadInvoices();
+    };
+
+    // ── SETTINGS ──
+    function loadSettings() {
+        const c = currentClient;
+        document.getElementById('settingsCompanyName').value  = c.company_name || '';
+        document.getElementById('settingsEmail').value        = c.email || '';
+        document.getElementById('settingsCompanyCode').value  = c.company_code || '';
+        document.getElementById('settingsLocationCode').value = c.location_code || '';
+        document.getElementById('settingsAddress1').value     = c.address || '';
+        document.getElementById('settingsAddress2').value     = c.address2 || '';
+        document.getElementById('settingsPhone1').value       = c.phone || '';
+        document.getElementById('settingsPhone2').value       = c.phone2 || '';
+        document.getElementById('settingsPhone3').value       = c.phone3 || '';
+        document.getElementById('settingsGstNumber').value    = c.gst_number || '';
+        document.getElementById('settingsWebsite').value      = c.website || '';
+        document.getElementById('settingsHsnSac').value       = c.hsn_sac_code || '';
+        document.getElementById('settingsState').value        = c.state || '';
+        document.getElementById('settingsPrimaryColor').value = c.primary_color || '#2563eb';
+        document.getElementById('settingsBankName').value     = c.bank_name || '';
+        document.getElementById('settingsBankBranch').value   = c.bank_branch || '';
+        document.getElementById('settingsBankAccount').value  = c.bank_account || '';
+        document.getElementById('settingsIfsc').value         = c.bank_ifsc || '';
+        document.getElementById('settingsCgst').value         = c.cgst_rate || '';
+        document.getElementById('settingsSgst').value         = c.sgst_rate || '';
+        document.getElementById('settingsIgst').value         = c.igst_rate || '';
+    }
+
+    window.saveSettings = async function(e) {
+        e.preventDefault();
+        const payload = {
+            company_code:   document.getElementById('settingsCompanyCode').value,
+            location_code:  document.getElementById('settingsLocationCode').value,
+            address:        document.getElementById('settingsAddress1').value,
+            address2:       document.getElementById('settingsAddress2').value,
+            phone:          document.getElementById('settingsPhone1').value,
+            phone2:         document.getElementById('settingsPhone2').value,
+            phone3:         document.getElementById('settingsPhone3').value,
+            gst_number:     document.getElementById('settingsGstNumber').value,
+            website:        document.getElementById('settingsWebsite').value,
+            hsn_sac_code:   document.getElementById('settingsHsnSac').value,
+            state:          document.getElementById('settingsState').value,
+            primary_color:  document.getElementById('settingsPrimaryColor').value,
+            bank_name:      document.getElementById('settingsBankName').value,
+            bank_branch:    document.getElementById('settingsBankBranch').value,
+            bank_account:   document.getElementById('settingsBankAccount').value,
+            bank_ifsc:      document.getElementById('settingsIfsc').value,
+            cgst_rate:      parseFloat(document.getElementById('settingsCgst').value) || 0,
+            sgst_rate:      parseFloat(document.getElementById('settingsSgst').value) || 0,
+            igst_rate:      parseFloat(document.getElementById('settingsIgst').value) || 0,
+        };
+        const { error } = await supabase.from('clients').update(payload).eq('id', currentClient.id);
+        if (error) { alert('Error: ' + error.message); return; }
+        currentClient = { ...currentClient, ...payload };
+        showToast('Settings saved!');
+    };
+
+    // ── INIT FORM ──
+    document.addEventListener('DOMContentLoaded', () => {
+        const bd = document.getElementById('bookingDate');
+        if (bd) bd.valueAsDate = new Date();
+        initPieceRows();
+    });
+
+})();
+</script>
+</body>
+</html>

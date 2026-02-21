@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Your Plan — CourierMitra</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            color: #0f172a;
+        }
+
+        /* ── TOP BAR ── */
+        .topbar {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 0 32px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .topbar-brand {
+            font-size: 18px;
+            font-weight: 800;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .topbar-right { font-size: 13px; color: #6b7280; }
+        .topbar-right a { color: #2563eb; font-weight: 600; text-decoration: none; }
+        .topbar-right a:hover { text-decoration: underline; }
+
+        /* ── HERO ── */
+        .hero {
+            text-align: center;
+            padding: 60px 20px 48px;
+        }
+        .hero-badge {
+            display: inline-block;
+            background: #eff6ff;
+            color: #2563eb;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            padding: 5px 14px;
+            border-radius: 20px;
+            margin-bottom: 18px;
+        }
+        .hero h1 {
+            font-size: 38px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 14px;
+            line-height: 1.2;
+        }
+        .hero p {
+            font-size: 16px;
+            color: #6b7280;
+            max-width: 440px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* ── ERROR BANNER ── */
+        #errorBanner {
+            display: none;
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+            padding: 14px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 28px;
+        }
+
+        /* ── PLANS GRID ── */
+        .plans-wrapper {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 0 20px 60px;
+        }
+        .plans-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        /* ── PLAN CARD ── */
+        .plan-card {
+            background: white;
+            border-radius: 18px;
+            border: 1.5px solid #e5e7eb;
+            padding: 32px 28px;
+            display: flex;
+            flex-direction: column;
+            transition: box-shadow 0.2s, transform 0.2s;
+            position: relative;
+        }
+        .plan-card:hover {
+            box-shadow: 0 8px 32px rgba(0,0,0,0.09);
+            transform: translateY(-3px);
+        }
+        .plan-card.featured {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 1px #2563eb, 0 8px 32px rgba(37,99,235,0.12);
+        }
+        .plan-card.featured:hover {
+            box-shadow: 0 0 0 1px #2563eb, 0 14px 40px rgba(37,99,235,0.18);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -13px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2563eb;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding: 4px 16px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .plan-icon { font-size: 32px; margin-bottom: 16px; }
+        .plan-name {
+            font-size: 22px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+        .plan-tagline {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 24px;
+            line-height: 1.4;
+        }
+
+        .plan-price {
+            font-size: 48px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .plan-price .currency {
+            font-size: 24px;
+            font-weight: 700;
+            vertical-align: top;
+            margin-top: 8px;
+            display: inline-block;
+        }
+        .plan-price .period {
+            font-size: 15px;
+            font-weight: 500;
+            color: #6b7280;
+        }
+        .plan-price-note {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 24px;
+            min-height: 18px;
+        }
+
+        .plan-divider {
+            height: 1px;
+            background: #f3f4f6;
+            margin-bottom: 22px;
+        }
+
+        .features-list {
+            list-style: none;
+            flex: 1;
+            margin-bottom: 28px;
+        }
+        .features-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 14px;
+            color: #374151;
+            padding: 6px 0;
+            line-height: 1.4;
+        }
+        .features-list li .fi { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+        .features-list li.na { color: #9ca3af; }
+        .features-list li strong { color: #0f172a; font-weight: 600; }
+
+        /* ── BUTTONS ── */
+        .btn-plan {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .btn-trial {
+            background: #f1f5f9;
+            color: #374151;
+            border: 1.5px solid #e5e7eb;
+        }
+        .btn-trial:hover:not(:disabled) { background: #e5e7eb; }
+        .btn-starter {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            color: white;
+        }
+        .btn-starter:hover { box-shadow: 0 4px 16px rgba(37,99,235,0.4); transform: translateY(-1px); }
+        .btn-plan:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; }
+
+        .btn-note {
+            text-align: center;
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 10px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px; height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── FAQ ── */
+        .faq-section {
+            max-width: 620px;
+            margin: 0 auto;
+            padding: 0 20px 64px;
+        }
+        .faq-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #0f172a;
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .faq-item { border-bottom: 1px solid #f1f5f9; padding: 16px 0; }
+        .faq-item:last-child { border-bottom: none; }
+        .faq-q { font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 6px; }
+        .faq-a { font-size: 13px; color: #6b7280; line-height: 1.6; }
+
+        /* ── FOOTER ── */
+        .footer-note {
+            text-align: center;
+            padding: 0 20px 32px;
+            font-size: 13px;
+            color: #9ca3af;
+        }
+        .footer-note a { color: #6b7280; }
+
+        @media (max-width: 600px) {
+            .plans-grid { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 28px; }
+            .topbar { padding: 0 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="topbar-brand">📦 CourierMitra</div>
+    <div class="topbar-right">Already have an account? <a href="client-admin.html">Sign in</a></div>
+</div>
+
+<div class="hero">
+    <div class="hero-badge">Simple, transparent pricing</div>
+    <h1>Start free.<br>Upgrade when you're ready.</h1>
+    <p>Try CourierMitra free for 14 days — no credit card needed. Upgrade to Starter for more power.</p>
+</div>
+
+<div class="plans-wrapper">
+
+    <div id="errorBanner"></div>
+
+    <div class="plans-grid">
+
+        <!-- FREE TRIAL -->
+        <div class="plan-card">
+            <div class="plan-icon">🚀</div>
+            <div class="plan-name">Free Trial</div>
+            <div class="plan-tagline">Everything you need to get started</div>
+            <div class="plan-price"><span class="currency">₹</span>0</div>
+            <div class="plan-price-note">14 days · no credit card needed</div>
+            <div class="plan-divider"></div>
+            <ul class="features-list">
+                <li><span class="fi">✅</span> Up to <strong>100 shipments</strong></li>
+                <li><span class="fi">✅</span> <strong>1 login</strong> (owner)</li>
+                <li><span class="fi">✅</span> AWB number auto-generation</li>
+                <li><span class="fi">✅</span> Customer management</li>
+                <li><span class="fi">✅</span> Public shipment tracking link</li>
+                <li><span class="fi">✅</span> All carrier options</li>
+                <li class="na"><span class="fi">✗</span> Invoice / bill generation</li>
+                <li class="na"><span class="fi">✗</span> Excel export</li>
+                <li class="na"><span class="fi">✗</span> Priority support</li>
+            </ul>
+            <button class="btn-plan btn-trial" id="freePlanBtn" onclick="selectFreePlan()">
+                Start Free Trial
+            </button>
+            <div class="btn-note">Ready immediately · no card required</div>
+        </div>
+
+        <!-- STARTER -->
+        <div class="plan-card featured">
+            <div class="popular-badge">⭐ Recommended</div>
+            <div class="plan-icon">⚡</div>
+            <div class="plan-name">Starter</div>
+            <div class="plan-tagline">For growing courier businesses</div>
+            <div class="plan-price"><span class="currency">₹</span>999 <span class="period">/ mo</span></div>
+            <div class="plan-price-note">Billed monthly · cancel anytime</div>
+            <div class="plan-divider"></div>
+            <ul class="features-list">
+                <li><span class="fi">✅</span> Up to <strong>500 shipments/month</strong></li>
+                <li><span class="fi">✅</span> <strong>2 logins</strong> (owner + staff)</li>
+                <li><span class="fi">✅</span> AWB number auto-generation</li>
+                <li><span class="fi">✅</span> Customer management</li>
+                <li><span class="fi">✅</span> Public shipment tracking link</li>
+                <li><span class="fi">✅</span> All carrier options</li>
+                <li><span class="fi">✅</span> Invoice / bill generation</li>
+                <li><span class="fi">✅</span> Excel export</li>
+                <li><span class="fi">✅</span> Priority support</li>
+            </ul>
+            <button class="btn-plan btn-starter" onclick="contactForStarter()">
+                Get Started with Starter
+            </button>
+            <div class="btn-note">We'll activate your account within 24 hours</div>
+        </div>
+
+    </div>
+</div>
+
+<div class="footer-note">
+    Paid plans are activated manually. Contact us at <a href="mailto:support@couriermitra.com">support@couriermitra.com</a> to get started.
+</div>
+
+<div class="faq-section">
+    <div class="faq-title">Common questions</div>
+    <div class="faq-item">
+        <div class="faq-q">Do I need a credit card for the free trial?</div>
+        <div class="faq-a">No. The 14-day free trial is completely free with no payment details required. Just sign up and start using it immediately.</div>
+    </div>
+    <div class="faq-item">
+        <div class="faq-q">What happens when my trial ends?</div>
+        <div class="faq-a">Your account is paused but your data is safe. You can upgrade to Starter at any time and your account is reactivated right away.</div>
+    </div>
+    <div class="faq-item">
+        <div class="faq-q">How do I activate the Starter plan?</div>
+        <div class="faq-a">Click "Get Started with Starter" — it opens a pre-filled email to our team. We'll contact you to process payment and activate your account within 24 hours.</div>
+    </div>
+    <div class="faq-item">
+        <div class="faq-q">Can I cancel anytime?</div>
+        <div class="faq-a">Yes. There are no long-term contracts. Just email us and we'll cancel your subscription at the end of the current billing month.</div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const SUPABASE_URL     = 'https://cptzvucszoaolehariwu.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_JRUmY_u6soJB11pkWipNEg_HKkRZ0jh';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    function showError(msg) {
+        const b = document.getElementById('errorBanner');
+        b.textContent = msg;
+        b.style.display = 'block';
+    }
+
+    // Check session on load
+    supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!session) {
+            document.getElementById('freePlanBtn').disabled = true;
+            showError('Please verify your email first. Check your inbox for the verification link we sent you.');
+        }
+    });
+
+    // ── FREE TRIAL ──
+    window.selectFreePlan = async function() {
+        const btn = document.getElementById('freePlanBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> Setting up...';
+
+        try {
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            if (sessionError || !session) {
+                showError('Session expired. Please log in again.');
+                btn.disabled = false;
+                btn.textContent = 'Start Free Trial';
+                return;
+            }
+
+            const { error } = await supabase
+                .from('clients')
+                .update({ subscription_status: 'active', plan: 'free' })
+                .eq('email', session.user.email);
+
+            if (error) {
+                showError('Could not activate plan: ' + error.message);
+                btn.disabled = false;
+                btn.textContent = 'Start Free Trial';
+                return;
+            }
+
+            window.location.href = 'client-admin.html';
+
+        } catch (err) {
+            console.error(err);
+            showError('Something went wrong. Please try again.');
+            btn.disabled = false;
+            btn.textContent = 'Start Free Trial';
+        }
+    };
+
+    // ── STARTER — EMAIL ──
+    window.contactForStarter = function() {
+        const subject = encodeURIComponent('CourierMitra Starter Plan — Activation Request');
+        const body    = encodeURIComponent(
+            'Hi CourierMitra Team,\n\n' +
+            'I would like to activate the Starter Plan (₹999/month).\n\n' +
+            'Please get in touch to process payment and activate my account.\n\n' +
+            'Thank you.'
+        );
+        window.location.href = 'mailto:support@couriermitra.com?subject=' + subject + '&body=' + body;
+    };
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CourierMitra - Create Account</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+        }
+
+        .signup-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo h1 {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+
+        .logo p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12);
+        }
+
+        input.error {
+            border-color: #ef4444;
+        }
+
+        .input-hint {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 5px;
+        }
+
+        /* AWB Prefix tooltip */
+        .tooltip-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #6b7280;
+            font-size: 11px;
+            cursor: help;
+            position: relative;
+            font-style: normal;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .tooltip-icon:hover .tooltip-text {
+            display: block;
+        }
+
+        .tooltip-text {
+            display: none;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 24px;
+            background: #111827;
+            color: white;
+            font-size: 12px;
+            font-weight: 400;
+            padding: 8px 12px;
+            border-radius: 8px;
+            width: 240px;
+            line-height: 1.5;
+            z-index: 10;
+            white-space: normal;
+        }
+
+        .tooltip-text::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #111827;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 8px;
+            font-family: inherit;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .message {
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            line-height: 1.6;
+        }
+
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 24px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .login-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255,255,255,.35);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .section-divider {
+            font-size: 12px;
+            font-weight: 700;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin: 24px 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <div class="logo">
+            <h1>📦 CourierMitra</h1>
+            <p>Create your courier management account</p>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <form id="signupForm">
+            <div class="section-divider">Your Details</div>
+
+            <div class="form-group">
+                <label for="ownerName">Full Name</label>
+                <input type="text" id="ownerName" required placeholder="Your full name" autocomplete="name">
+            </div>
+
+            <div class="section-divider">Company Details</div>
+
+            <div class="form-group">
+                <label for="companyName">Company Name</label>
+                <input type="text" id="companyName" required placeholder="e.g. Swift Couriers Pvt Ltd" autocomplete="organization">
+            </div>
+
+            <div class="form-group">
+                <label for="awbPrefix">
+                    AWB Prefix
+                    <span class="tooltip-icon">
+                        ?
+                        <span class="tooltip-text">AWB (Air Waybill) prefix is a 2–5 letter code added before each shipment number. For example, prefix "EXP" generates AWBs like EXP000001, EXP000002, etc.</span>
+                    </span>
+                </label>
+                <input type="text" id="awbPrefix" required placeholder="e.g. EXP" maxlength="5" style="text-transform:uppercase">
+                <div class="input-hint">2–5 uppercase letters only. Used to generate unique shipment numbers.</div>
+            </div>
+
+            <div class="section-divider">Login Credentials</div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" required placeholder="you@company.com" autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required placeholder="Minimum 8 characters" minlength="8" autocomplete="new-password">
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" required placeholder="Re-enter your password" autocomplete="new-password">
+            </div>
+
+            <button type="submit" class="btn" id="submitBtn">Create Account</button>
+        </form>
+
+        <div class="login-link">
+            Already have an account? <a href="client-admin.html">Login here</a>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const SUPABASE_URL = 'https://cptzvucszoaolehariwu.supabase.co';
+            const SUPABASE_ANON_KEY = 'sb_publishable_JRUmY_u6soJB11pkWipNEg_HKkRZ0jh';
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            const form = document.getElementById('signupForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const messageDiv = document.getElementById('message');
+            const awbInput = document.getElementById('awbPrefix');
+
+            // Force uppercase on AWB prefix as user types
+            awbInput.addEventListener('input', function() {
+                this.value = this.value.toUpperCase().replace(/[^A-Z]/g, '');
+            });
+
+            function showMessage(html, type) {
+                messageDiv.innerHTML = html;
+                messageDiv.className = 'message ' + type;
+                messageDiv.style.display = 'block';
+                messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            function setLoading(loading) {
+                submitBtn.disabled = loading;
+                submitBtn.innerHTML = loading
+                    ? '<span class="spinner"></span> Creating Account...'
+                    : 'Create Account';
+            }
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                messageDiv.style.display = 'none';
+
+                const ownerName    = document.getElementById('ownerName').value.trim();
+                const companyName  = document.getElementById('companyName').value.trim();
+                const awbPrefix    = awbInput.value.trim().toUpperCase();
+                const email        = document.getElementById('email').value.trim();
+                const password     = document.getElementById('password').value;
+                const confirmPwd   = document.getElementById('confirmPassword').value;
+
+                // --- Validation ---
+                if (!ownerName) {
+                    showMessage('Please enter your full name.', 'error');
+                    return;
+                }
+                if (!companyName) {
+                    showMessage('Please enter your company name.', 'error');
+                    return;
+                }
+                if (!/^[A-Z]{2,5}$/.test(awbPrefix)) {
+                    showMessage('AWB Prefix must be 2–5 uppercase letters (A–Z) only.', 'error');
+                    awbInput.classList.add('error');
+                    awbInput.focus();
+                    return;
+                }
+                awbInput.classList.remove('error');
+
+                if (password.length < 8) {
+                    showMessage('Password must be at least 8 characters.', 'error');
+                    return;
+                }
+                if (password !== confirmPwd) {
+                    showMessage('Passwords do not match. Please re-enter.', 'error');
+                    return;
+                }
+
+                setLoading(true);
+
+                try {
+                    // Step 1: Create Supabase Auth user with email verification redirect
+                    const { data: authData, error: authError } = await supabase.auth.signUp({
+                        email: email,
+                        password: password,
+                        options: {
+                            emailRedirectTo: window.location.origin + '/verify.html',
+                            data: {
+                                owner_name: ownerName,
+                                company_name: companyName
+                            }
+                        }
+                    });
+
+                    if (authError) {
+                        if (authError.message.toLowerCase().includes('already registered') ||
+                            authError.message.toLowerCase().includes('user already registered')) {
+                            showMessage(
+                                'This email is already registered. <a href="client-admin.html" style="color:#991b1b;font-weight:600;">Login here</a>',
+                                'error'
+                            );
+                        } else {
+                            showMessage('Signup failed: ' + authError.message, 'error');
+                        }
+                        return;
+                    }
+
+                    // Step 2: Insert record into clients table
+                    // The auth user was created — now persist the business profile.
+                    const { error: dbError } = await supabase
+                        .from('clients')
+                        .insert([{
+                            owner_name: ownerName,
+                            company_name: companyName,
+                            email: email,
+                            awb_prefix: awbPrefix,
+                            awb_counter: 1,
+                            is_active: false,
+                            email_verified: false,
+                            subscription_status: 'pending',
+                            plan: 'free'
+                        }]);
+
+                    if (dbError) {
+                        // If duplicate email in clients table, treat as already registered
+                        if (dbError.code === '23505') {
+                            showMessage(
+                                'This email is already registered. <a href="client-admin.html" style="color:#991b1b;font-weight:600;">Login here</a>',
+                                'error'
+                            );
+                        } else {
+                            showMessage('Account created but profile save failed: ' + dbError.message + '. Please contact support.', 'error');
+                        }
+                        return;
+                    }
+
+                    // Step 3: Show success — do NOT redirect
+                    form.style.display = 'none';
+                    showMessage(
+                        '<strong>Check your email to verify your account!</strong><br><br>' +
+                        'We sent a verification link to <strong>' + email + '</strong>.<br>' +
+                        'Click the link in the email to activate your account and choose your plan.<br><br>' +
+                        '<span style="font-size:13px;color:#065f46;">Didn\'t receive it? Check your spam folder or <a href="signup.html" style="color:#065f46;font-weight:600;">try again</a>.</span>',
+                        'success'
+                    );
+
+                } catch (err) {
+                    console.error('Signup error:', err);
+                    showMessage('Something went wrong. Please try again.', 'error');
+                } finally {
+                    setLoading(false);
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

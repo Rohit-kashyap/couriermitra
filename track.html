@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Your Shipment - CourierMitra</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .search-box {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .search-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 18px 24px;
+            border: 3px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-btn {
+            padding: 18px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .result-container {
+            display: none;
+        }
+
+        .result-container.active {
+            display: block;
+        }
+
+        .shipment-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .shipment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .shipment-awb {
+            flex: 1;
+        }
+
+        .shipment-awb h2 {
+            font-size: 14px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .shipment-awb .awb-number {
+            font-size: 32px;
+            font-weight: 800;
+            color: #111827;
+            font-family: 'Courier New', monospace;
+        }
+
+        .status-badge {
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-delivered {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-intransit {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-booked {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-cancelled {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .shipment-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f9fafb;
+            border-radius: 15px;
+        }
+
+        .info-item h4 {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .info-item p {
+            font-size: 16px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .tracking-timeline {
+            margin-top: 40px;
+        }
+
+        .timeline-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 35px;
+        }
+
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -30px;
+            top: 5px;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border: 4px solid #667eea;
+            border-radius: 50%;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .timeline-item.current .timeline-dot {
+            width: 20px;
+            height: 20px;
+            border-width: 5px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 15px rgba(102, 126, 234, 0);
+            }
+        }
+
+        .timeline-content {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 3px solid #667eea;
+        }
+
+        .timeline-item.current .timeline-content {
+            background: #ede9fe;
+            border-left-color: #7c3aed;
+        }
+
+        .timeline-status {
+            font-size: 16px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .timeline-location {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .timeline-date {
+            font-size: 13px;
+            color: #9ca3af;
+        }
+
+        .timeline-description {
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: 10px;
+        }
+
+        .company-branding {
+            text-align: center;
+            margin-top: 40px;
+            padding: 25px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .company-logo-display {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 15px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 36px;
+            font-weight: 700;
+        }
+
+        .company-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 5px;
+        }
+
+        .company-tagline {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+            font-size: 16px;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .search-box {
+                padding: 25px;
+            }
+
+            .search-form {
+                flex-direction: column;
+            }
+
+            .search-btn {
+                width: 100%;
+            }
+
+            .shipment-card {
+                padding: 25px;
+            }
+
+            .shipment-awb .awb-number {
+                font-size: 24px;
+            }
+
+            .shipment-info-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .timeline {
+                padding-left: 30px;
+            }
+        }
+
+        /* Iframe Optimization */
+        body.iframe-mode {
+            background: transparent;
+            padding: 10px;
+        }
+
+        body.iframe-mode .header {
+            display: none;
+        }
+
+        body.iframe-mode .search-box {
+            box-shadow: none;
+            border: 2px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📦 Track Your Shipment</h1>
+            <p>Enter your AWB number to track your shipment in real-time</p>
+        </div>
+
+        <!-- Search Box -->
+        <div class="search-box">
+            <h2 class="search-title">Enter Tracking Number</h2>
+            <form class="search-form" onsubmit="window.trackShipment(event)">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="awbInput" 
+                    placeholder="Enter AWB Number (e.g., EXP001000)"
+                    required
+                    autocomplete="off"
+                >
+                <button type="submit" class="search-btn">🔍 Track</button>
+            </form>
+        </div>
+
+        <!-- Result Container -->
+        <div class="result-container" id="resultContainer">
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const SUPABASE_URL = 'https://cptzvucszoaolehariwu.supabase.co';
+            const SUPABASE_KEY = 'sb_publishable_JRUmY_u6soJB11pkWipNEg_HKkRZ0jh';
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            // Check if in iframe
+            if (window.self !== window.top) {
+                document.body.classList.add('iframe-mode');
+            }
+
+            // Check for AWB in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const awbFromUrl = urlParams.get('awb');
+            if (awbFromUrl) {
+                document.getElementById('awbInput').value = awbFromUrl;
+                setTimeout(() => {
+                    const form = document.querySelector('.search-form');
+                    form.dispatchEvent(new Event('submit'));
+                }, 500);
+            }
+
+            window.trackShipment = async function(event) {
+                event.preventDefault();
+                
+                const awbNumber = document.getElementById('awbInput').value.trim().toUpperCase();
+                const resultContainer = document.getElementById('resultContainer');
+                const resultContent = document.getElementById('resultContent');
+
+                // Show loading
+                resultContainer.classList.add('active');
+                resultContent.innerHTML = '<div class="loading">Tracking your shipment</div>';
+
+                try {
+                    console.log('Tracking AWB:', awbNumber);
+
+                    // Fetch shipment details with client info
+                    const { data: shipmentData, error: shipmentError } = await supabase
+                        .from('shipments')
+                        .select(`
+                            *,
+                            clients (
+                                company_name,
+                                logo_url,
+                                primary_color
+                            ),
+                            carriers (
+                                carrier_name
+                            )
+                        `)
+                        .eq('awb_no', awbNumber)
+                        .eq('is_active', true)
+                        .single();
+
+                    console.log('Shipment data:', shipmentData);
+                    console.log('Shipment error:', shipmentError);
+
+                    if (shipmentError || !shipmentData) {
+                        resultContent.innerHTML = `
+                            <div class="error-message">
+                                ❌ No shipment found with AWB: ${awbNumber}<br>
+                                <small style="margin-top: 10px; display: block;">Please check your tracking number and try again</small>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    // Fetch tracking events
+                    const { data: trackingEvents, error: eventsError } = await supabase
+                        .from('tracking_events')
+                        .select('*')
+                        .eq('shipment_id', shipmentData.id)
+                        .order('event_date', { ascending: false });
+
+                    console.log('Tracking events:', trackingEvents);
+                    console.log('Events error:', eventsError);
+
+                    displayShipmentDetails(shipmentData, trackingEvents || []);
+
+                } catch (error) {
+                    console.error('Tracking error:', error);
+                    resultContent.innerHTML = `
+                        <div class="error-message">
+                            ❌ Error tracking shipment: ${error.message}<br>
+                            <small style="margin-top: 10px; display: block;">Please try again later</small>
+                        </div>
+                    `;
+                }
+            };
+
+            function displayShipmentDetails(shipment, trackingEvents) {
+                const resultContent = document.getElementById('resultContent');
+                
+                // Determine status class
+                let statusClass = 'status-booked';
+                const status = shipment.status || 'Booked';
+                
+                if (status === 'Delivered') statusClass = 'status-delivered';
+                else if (status.includes('Transit') || status.includes('Delivery')) statusClass = 'status-intransit';
+                else if (status === 'Cancelled') statusClass = 'status-cancelled';
+
+                // Format dates
+                const bookingDate = new Date(shipment.booking_date).toLocaleDateString('en-IN', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                
+                const deliveryDate = shipment.delivery_date ? 
+                    new Date(shipment.delivery_date).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                    }) : 'Pending';
+
+                // Company info
+                const companyName = shipment.clients?.company_name || 'CourierMitra';
+                const carrierName = shipment.carriers?.carrier_name || 'N/A';
+
+                let html = `
+                    <div class="shipment-card">
+                        <div class="shipment-header">
+                            <div class="shipment-awb">
+                                <h2>Tracking Number</h2>
+                                <div class="awb-number">${shipment.awb_no}</div>
+                            </div>
+                            <div class="status-badge ${statusClass}">
+                                ${status}
+                            </div>
+                        </div>
+
+                        <div class="shipment-info-grid">
+                            <div class="info-item">
+                                <h4>📍 Destination</h4>
+                                <p>${shipment.consignee_city}, ${shipment.consignee_country}</p>
+                            </div>
+                            <div class="info-item">
+                                <h4>👤 Consignee</h4>
+                                <p>${shipment.consignee_name}</p>
+                            </div>
+                            <div class="info-item">
+                                <h4>📅 Booking Date</h4>
+                                <p>${bookingDate}</p>
+                            </div>
+                            <div class="info-item">
+                                <h4>🚚 Carrier</h4>
+                                <p>${carrierName}</p>
+                            </div>
+                            ${shipment.current_location ? `
+                                <div class="info-item">
+                                    <h4>📌 Current Location</h4>
+                                    <p>${shipment.current_location}</p>
+                                </div>
+                            ` : ''}
+                            ${shipment.delivery_date ? `
+                                <div class="info-item">
+                                    <h4>✅ Delivery Date</h4>
+                                    <p>${deliveryDate}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        ${trackingEvents.length > 0 ? `
+                            <div class="tracking-timeline">
+                                <h3 class="timeline-title">📦 Tracking History</h3>
+                                <div class="timeline">
+                                    ${generateTimelineHTML(trackingEvents)}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="company-branding">
+                        <div class="company-logo-display">${getInitials(companyName)}</div>
+                        <div class="company-name">${companyName}</div>
+                        <div class="company-tagline">Powered by CourierMitra</div>
+                    </div>
+                `;
+
+                resultContent.innerHTML = html;
+            }
+
+            function generateTimelineHTML(events) {
+                let html = '';
+                
+                events.forEach((event, index) => {
+                    const isCurrent = index === 0;
+                    const eventDate = new Date(event.event_date);
+                    const formattedDate = eventDate.toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+                    const formattedTime = eventDate.toLocaleTimeString('en-IN', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                    html += `
+                        <div class="timeline-item ${isCurrent ? 'current' : ''}">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <div class="timeline-status">${event.status}</div>
+                                ${event.location ? `
+                                    <div class="timeline-location">
+                                        📍 ${event.location}
+                                    </div>
+                                ` : ''}
+                                <div class="timeline-date">
+                                    🕐 ${formattedDate} at ${formattedTime}
+                                </div>
+                                ${event.description ? `
+                                    <div class="timeline-description">${event.description}</div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                return html;
+            }
+
+            function getInitials(companyName) {
+                return companyName.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+            }
+        })();
+    </script>
+</body>
+</html>

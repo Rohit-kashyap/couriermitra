@@ -419,6 +419,12 @@
             border-radius: 5px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
         }
         .copy-btn.copied { background: #059669; }
+        .track-courier-btn {
+            padding: 5px 12px; background: #059669; color: white; border: none;
+            border-radius: 5px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
+            text-decoration: none; display: inline-flex; align-items: center;
+        }
+        .track-courier-btn:hover { background: #047857; }
         .tracking-event {
             display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f9fafb;
         }
@@ -2019,6 +2025,7 @@
             <div class="tracking-url-row">
                 <span>${esc(trackUrl)}</span>
                 <button class="copy-btn" id="copyBtn" onclick="copyLink('${esc(trackUrl)}')">📋 Copy Link</button>
+                <a href="${esc(trackUrl)}" target="_blank" class="track-courier-btn">🚀 Track Courier</a>
             </div>
             <div class="view-section-title">Shipment Status</div>
             <div style="margin-bottom:16px;">
